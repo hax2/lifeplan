@@ -1,5 +1,4 @@
-import NextAuth, { type DefaultSession } from "next-auth";
-import { JWT } from "next-auth/jwt";
+import { type DefaultSession } from "next-auth";
 
 // By declaring this module, we are extending the original NextAuth types.
 declare module "next-auth" {

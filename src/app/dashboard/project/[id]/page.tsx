@@ -4,7 +4,6 @@ import { Project, Subtask } from "@/lib/types";
 import { ArrowLeft, CheckCircle2, Circle, Plus, Archive } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-// Import useCallback
 import { useEffect, useState, FormEvent, useCallback } from "react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -16,7 +15,6 @@ export default function ProjectDetailPage() {
     const [project, setProject] = useState<Project | null>(null);
     const [newSubtaskText, setNewSubtaskText] = useState("");
 
-    // Wrap the data fetching function in useCallback
     const fetchProject = useCallback(async () => {
         if (!id) return;
         try {
@@ -27,15 +25,15 @@ export default function ProjectDetailPage() {
                 toast.error("Could not load project details.");
                 router.push('/dashboard');
             }
-        } catch (error) {
+        } catch (_error) { // This line has been corrected
             toast.error("A network error occurred.");
             router.push('/dashboard');
         }
-    }, [id, router]); // Dependencies for useCallback
+    }, [id, router]);
 
     useEffect(() => {
         fetchProject();
-    }, [fetchProject]); // Now this dependency is stable
+    }, [fetchProject]);
 
     const handleAddSubtask = async (e: FormEvent) => {
         e.preventDefault();
@@ -49,7 +47,7 @@ export default function ProjectDetailPage() {
 
         if (res.ok) {
             setNewSubtaskText("");
-            fetchProject(); // Re-fetch to show the new subtask
+            fetchProject();
         } else {
             toast.error("Failed to add subtask.");
         }
@@ -58,7 +56,6 @@ export default function ProjectDetailPage() {
     const handleToggleSubtask = async (subtask: Subtask) => {
         if (!project) return;
         
-        // Optimistic UI update
         const updatedSubtasks = project.subtasks.map(s => 
             s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s
         );
@@ -72,7 +69,7 @@ export default function ProjectDetailPage() {
         
         if (!res.ok) {
             toast.error("Failed to update subtask.");
-            fetchProject(); // Revert if the API call fails
+            fetchProject();
         }
     };
 
