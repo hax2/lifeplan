@@ -1,8 +1,9 @@
+/* src/app/api/projects/[id]/suggest-subtasks/route.ts */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-/* ----------- simple title-to-subtasks heuristic ----------- */
+/* ---------- simple heuristic to create subtasks ---------- */
 const templates: Record<string, string[]> = {
   launch: [
     "Finalize launch strategy for {noun}",
@@ -14,7 +15,7 @@ const templates: Record<string, string[]> = {
   create: [
     "Define requirements for {noun}",
     "Outline the structure of {noun}",
-    "Develop the first draft/prototype",
+    "Develop the first draft / prototype",
     "Review and iterate on the draft",
     "Finalize and polish {noun}"
   ],
@@ -28,7 +29,7 @@ const templates: Record<string, string[]> = {
   design: [
     "Gather inspiration and create a mood board for {noun}",
     "Sketch initial concepts and wireframes",
-    "Develop high-fidelity mockups for {noun}",
+    "Develop high-fidelity mock-ups for {noun}",
     "Select color palette and typography",
     "Prepare final assets and design specs"
   ],
@@ -37,7 +38,7 @@ const templates: Record<string, string[]> = {
     "Identify key milestones and deliverables",
     "Allocate resources and set a budget",
     "Create a detailed timeline",
-    "Identify potential risks and mitigation strategies"
+    "Identify potential risks and mitigations"
   ],
   default: [
     "Break down the major goals",
@@ -63,26 +64,26 @@ function generate(title: string): string[] {
   return templates[verb].map(t => t.replace("{noun}", noun));
 }
 
-/* ----------- POST /api/projects/[id]/suggest-subtasks ----------- */
+/* ---------- POST handler ---------- */
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } & Record<string, string> }
+  { params }: { params: any }
 ) {
-  const { id } = params;
+  const id = params.id as string;
 
   const session = await auth();
-  if (!session?.user?.id)
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const project = await prisma.project.findFirst({
     where: { id, userId: session.user.id }
   });
-
-  if (!project)
+  if (!project) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
 
   const subtasks = generate(project.title);
-
   await prisma.subtask.createMany({
     data: subtasks.map(text => ({ text, projectId: id }))
   });
