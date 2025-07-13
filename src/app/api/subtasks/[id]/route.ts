@@ -2,23 +2,22 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// Define a clear type for the route's context object
-type RouteContext = {
-    params: {
-        id: string;
-    }
-}
+// Replicating the unusual context type from the working `projects` route
+// This is the key to satisfying the strict build environment.
+type Context = {
+    params: Promise<{ id: string }>;
+};
 
 // Update (toggle) a subtask
-export async function PUT(req: Request, context: RouteContext) {
+export async function PUT(req: Request, context: Context) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { isCompleted } = await req.json();
-    const { id } = context.params; // Destructure id from the context object
+    const { id } = await context.params; // We must now use 'await' here
 
-    // TODO: Add a security check to ensure the user owns the project this subtask belongs to.
+    // Security: We can add a check here to ensure the subtask belongs to a project owned by the user
     const updatedSubtask = await prisma.subtask.update({
         where: { id: id },
         data: { isCompleted },
@@ -27,14 +26,14 @@ export async function PUT(req: Request, context: RouteContext) {
 }
 
 // Delete a subtask
-export async function DELETE(req: Request, context: RouteContext) {
+export async function DELETE(req: Request, context: Context) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { id } = context.params; // Destructure id from the context object
+    const { id } = await context.params; // And also use 'await' here
 
-    // TODO: Add a security check here as well.
+    // Security: Add check here too
     await prisma.subtask.delete({ where: { id: id } });
     return NextResponse.json({ message: "Subtask deleted" }, { status: 200 });
 }
