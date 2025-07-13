@@ -32,6 +32,7 @@ export const WeeklyTasksWidget = () => {
 
     if (res.ok) {
       toast.success("Weekly task marked complete!");
+      setTasks(prevTasks => prevTasks.map(t => t.id === task.id ? { ...t, lastCompletedAt: new Date().toISOString() } : t));
       setTimeout(() => {
         fetchTasks();
         setCompletedTaskIds(prev => {
@@ -71,7 +72,7 @@ export const WeeklyTasksWidget = () => {
 
   return (
     <Card>
-      <h2 className="text-xl font-bold mb-4 text-slate-900">Weekly Habits</h2>
+      <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Weekly Habits</h2>
       <div className="space-y-3">
         <AnimatePresence>
           {tasks.map(task => {
@@ -83,17 +84,18 @@ export const WeeklyTasksWidget = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 key={task.id}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600"
+                transition={{ duration: 0.2, ease: "easeInOut" }}
             >
                 <span className="flex-grow">{task.title}</span>
-                <span className="text-xs text-slate-500 flex-shrink-0">
+                <span className="text-xs text-slate-500 flex-shrink-0 dark:text-slate-400">
                 Last: {formatDateRelativeToNow(task.lastCompletedAt)}
                 </span>
                 <button
                     onClick={() => handleToggle(task)}
                     disabled={isCompleted}
                     // FIX: Added 'relative' to properly contain the animating child spans
-                    className="ml-2 px-3 py-1 text-white rounded-md hover:bg-sky-600 transition-colors text-sm w-20 relative flex items-center justify-center overflow-hidden"
+                    className="ml-2 px-3 py-1 text-white rounded-md hover:bg-sky-600 text-sm w-24 relative flex items-center justify-center overflow-hidden"
                     style={{ backgroundColor: isCompleted ? '#22c55e' : '#0ea5e9' }}
                 >
                     <AnimatePresence>
@@ -121,9 +123,9 @@ export const WeeklyTasksWidget = () => {
         <input
           type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
           placeholder="Add a weekly habit..."
-          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
+          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-sky-400"
         />
-        <button type="submit" className="text-sky-500 hover:text-sky-700" title="Add habit"><Plus size={20} /></button>
+        <button type="submit" className="text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300" title="Add habit"><Plus size={20} /></button>
       </form>
     </Card>
   );

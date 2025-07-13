@@ -12,18 +12,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/lib/store";
 
 const ProjectDetailSkeleton = () => (
-    <Card className="w-full max-w-4xl mx-auto shadow-2xl">
-        <div className="p-6 border-b border-slate-200 animate-pulse">
-            <div className="h-4 bg-slate-200 rounded w-48 mb-6"></div>
-            <div className="h-8 bg-slate-200 rounded w-1/2 mb-2"></div>
-            <div className="h-5 bg-slate-200 rounded w-3/4"></div>
+    <Card className="w-full max-w-4xl mx-auto shadow-2xl dark:bg-slate-800 dark:border-slate-700">
+        <div className="p-6 border-b border-slate-200 animate-pulse dark:border-slate-700">
+            <div className="h-4 bg-slate-200 rounded w-48 mb-6 dark:bg-slate-700"></div>
+            <div className="h-8 bg-slate-200 rounded w-1/2 mb-2 dark:bg-slate-700"></div>
+            <div className="h-5 bg-slate-200 rounded w-3/4 dark:bg-slate-700"></div>
         </div>
         <div className="p-6 animate-pulse">
-            <div className="h-6 bg-slate-200 rounded w-32 mb-6"></div>
+            <div className="h-6 bg-slate-200 rounded w-32 mb-6 dark:bg-slate-700"></div>
             <div className="space-y-4">
-                <div className="h-12 bg-slate-200 rounded-lg"></div>
-                <div className="h-12 bg-slate-200 rounded-lg"></div>
-                <div className="h-12 bg-slate-200 rounded-lg w-5/6"></div>
+                <div className="h-12 bg-slate-200 rounded-lg dark:bg-slate-700"></div>
+                <div className="h-12 bg-slate-200 rounded-lg dark:bg-slate-700"></div>
+                <div className="h-12 bg-slate-200 rounded-lg w-5/6 dark:bg-slate-700"></div>
             </div>
         </div>
     </Card>
@@ -126,9 +126,9 @@ export default function ProjectDetailPage() {
 
     if (!project) {
         return (
-             <div className="text-center p-10">
+             <div className="text-center p-10 dark:text-slate-100">
                 <h2 className="text-xl font-semibold">Project not found</h2>
-                <Link href="/dashboard" className="text-sky-600 hover:underline">
+                <Link href="/dashboard" className="text-sky-600 hover:underline dark:text-sky-400">
                     Return to dashboard
                 </Link>
             </div>
@@ -136,24 +136,24 @@ export default function ProjectDetailPage() {
     }
 
     return (
-        <Card className="w-full max-w-4xl mx-auto shadow-2xl">
-            <div className="p-6 border-b border-slate-200">
-                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4 transition-colors">
+        <Card className="w-full max-w-4xl mx-auto shadow-2xl dark:bg-slate-800 dark:border-slate-700">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4 dark:text-slate-400 dark:hover:text-slate-200">
                     <ArrowLeft size={16} />
                     Back to All Projects
                 </Link>
                 <div className="flex justify-between items-start">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">{project.title}</h1>
-                        <p className="text-slate-500 mt-1">{project.description || 'No description provided.'}</p>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{project.title}</h1>
+                        <p className="text-slate-500 mt-1 dark:text-slate-400">{project.description || 'No description provided.'}</p>
                     </div>
-                     <button onClick={handleArchiveProject} className="flex-shrink-0 ml-4 p-2 text-slate-500 hover:text-red-600 transition-colors" title="Archive Project">
+                     <button onClick={handleArchiveProject} className="flex-shrink-0 ml-4 p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400" title="Archive Project">
                         <Archive size={20} />
                     </button>
                 </div>
             </div>
             <div className="p-6">
-                <h3 className="font-bold mb-4 text-slate-800">Checklist</h3>
+                <h3 className="font-bold mb-4 text-slate-800 dark:text-slate-200">Checklist</h3>
                 <div className="space-y-3 mb-6">
                     <AnimatePresence>
                     {project.subtasks.map(subtask => (
@@ -164,24 +164,25 @@ export default function ProjectDetailPage() {
                             exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
                             key={subtask.id}
                             onClick={() => handleToggleSubtask(subtask)}
-                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-colors', subtask.isCompleted ? 'bg-emerald-50' : 'bg-slate-100 hover:bg-slate-200')}
+                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', subtask.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600')}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
                         >
-                            {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />}
-                            <span className={cn("flex-grow", subtask.isCompleted && "text-slate-500 line-through")}>{subtask.text}</span>
+                            {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 dark:text-slate-500" />}
+                            <span className={cn("flex-grow", subtask.isCompleted && "text-slate-500 line-through dark:text-slate-400")}>{subtask.text}</span>
                         </motion.button>
                     ))}
                     </AnimatePresence>
                     {project.subtasks.length === 0 && (
-                        <p className="text-slate-500 text-center py-4">No subtasks for this project yet.</p>
+                        <p className="text-slate-500 text-center py-4 dark:text-slate-400">No subtasks for this project yet.</p>
                     )}
                 </div>
                 <form onSubmit={handleAddSubtask} className="flex items-center gap-3">
                     <input
                         type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)}
                         placeholder="Add a new checklist item..."
-                        className="w-full px-4 py-2 text-md border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                        className="w-full px-4 py-2 text-md border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:focus:ring-sky-400 dark:focus:border-sky-400"
                     />
-                    <button type="submit" className="p-3 bg-sky-500 text-white rounded-md hover:bg-sky-600 disabled:opacity-50 transition-colors" disabled={!newSubtaskText.trim()} title="Add item">
+                    <button type="submit" className="p-3 bg-sky-500 text-white rounded-md hover:bg-sky-600 disabled:opacity-50 transition-colors dark:bg-sky-700 dark:hover:bg-sky-600" disabled={!newSubtaskText.trim()} title="Add item">
                         <Plus size={24} />
                     </button>
                 </form>

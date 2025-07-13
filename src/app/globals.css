@@ -1,27 +1,11 @@
-@import "tailwindcss";
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Global overrides */
 body {
-  /* Changed from var(--background) to a specific slate color */
   background-color: #f8fafc; /* slate-50 */
-  color: #1e293b; /* slate-800 */
-  font-family: var(--font-sans);
+  color: #1e293b;            /* slate-800 */
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
 }

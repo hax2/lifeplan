@@ -57,22 +57,22 @@ export const ArchiveWidget = ({ onProjectRestored }: { onProjectRestored: () => 
 
     return (
         <Card>
-            <h2 className="text-xl font-bold mb-4 text-slate-900">Archive</h2>
-            {isLoading ? <p className="text-sm text-slate-500">Loading...</p> : 
+            <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Archive</h2>
+            {isLoading ? <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p> : 
             archived.length > 0 ? (
                 <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
                     {archived.map(project => (
-                        <li key={project.id} className="flex justify-between items-center group p-2 rounded-md hover:bg-slate-50 transition-colors">
-                            <span className="text-slate-700 truncate pr-2">{project.title}</span>
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                <button onClick={() => handleRestore(project.id)} title="Restore" className="text-slate-500 hover:text-emerald-600"><RotateCcw size={16} /></button>
-                                <button onClick={() => handleDelete(project.id)} title="Delete Permanently" className="text-slate-500 hover:text-red-600"><Trash2 size={16} /></button>
+                        <li key={project.id} className="flex justify-between items-center group p-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700">
+                            <span className="text-slate-700 truncate pr-2 dark:text-slate-200">{project.title}</span>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100">
+                                <button onClick={() => handleRestore(project.id)} title="Restore" className="text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400"><RotateCcw size={16} /></button>
+                                <button onClick={() => handleDelete(project.id)} title="Delete Permanently" className="text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"><Trash2 size={16} /></button>
                             </div>
                         </li>
                     ))}
                 </ul>
             ) : (
-                <p className="text-sm text-slate-500">No archived projects.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">No archived projects.</p>
             )}
         </Card>
     );

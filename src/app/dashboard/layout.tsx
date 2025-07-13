@@ -9,8 +9,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-800 font-sans">
-      <aside className="w-80 h-full bg-white border-r border-gray-200 flex-shrink-0">
+    <div className="flex h-screen bg-slate-50 text-slate-800 font-sans dark:bg-slate-950 dark:text-slate-100">
+      <aside className="w-80 h-full bg-white border-r border-gray-200 flex-shrink-0 dark:bg-slate-900 dark:border-slate-700">
         {/* The Sidebar is now called without the unnecessary prop */}
         <Sidebar />
       </aside>
