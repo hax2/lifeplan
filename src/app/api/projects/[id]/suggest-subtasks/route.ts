@@ -2,10 +2,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-type Context = {
-  params: { id: string };
-};
-
 /**
  * A heuristic-based function to generate subtasks based on action verbs in a project title.
  * This is faster, cheaper, and more predictable than an LLM.
@@ -17,7 +13,6 @@ const generateSubtasksFromTitle = (title: string): string[] => {
     let nounPhrase = title;
     let action = 'default';
 
-    // A map of action verbs to their corresponding subtask templates.
     const actionTemplates: { [key: string]: string[] } = {
         'launch': [
             "Finalize launch strategy for {noun_phrase}",
@@ -62,17 +57,14 @@ const generateSubtasksFromTitle = (title: string): string[] => {
         ]
     };
 
-    // Find which action verb, if any, is in the title.
     for (const verb of Object.keys(actionTemplates)) {
         if (lowerTitle.startsWith(verb)) {
             action = verb;
-            // Extract the noun phrase after the verb.
             nounPhrase = title.substring(verb.length).trim();
             break;
         }
     }
 
-    // Replace the placeholder with the actual noun phrase from the title.
     const subtasks = actionTemplates[action].map(template => 
         template.replace('{noun_phrase}', nounPhrase)
     );
@@ -80,8 +72,12 @@ const generateSubtasksFromTitle = (title: string): string[] => {
     return subtasks;
 };
 
-export async function POST(req: Request, context: Context) {
-    const { id } = context.params;
+// FIX: Corrected the function signature to use the standard Next.js type for route handlers.
+export async function POST(
+    req: Request, 
+    { params }: { params: { id: string } }
+) {
+    const { id } = params; // The project ID is correctly extracted from `params`.
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -96,7 +92,6 @@ export async function POST(req: Request, context: Context) {
             return NextResponse.json({ error: "Project not found" }, { status: 404 });
         }
 
-        // Call our new heuristic function instead of the mock AI.
         const suggestedTasks = generateSubtasksFromTitle(project.title);
         
         const subtasksToCreate = suggestedTasks.map(text => ({
