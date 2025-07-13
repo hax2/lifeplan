@@ -1,95 +1,90 @@
+// src/app/api/projects/[id]/suggest-subtasks/route.ts
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Create quick subtasks based on simple verbs in the project title –
- * no LLM calls, just a deterministic template lookup.
+ * Quickly derives subtasks from common action verbs in a project title.
  */
 const generateSubtasksFromTitle = (title: string): string[] => {
   const lower = title.toLowerCase();
-  let action: keyof typeof templates | "default" = "default";
   let noun = title;
+  let verb = "default";
 
-  const templates = {
+  const templates: Record<string, string[]> = {
     launch: [
       "Finalize launch strategy for {noun}",
       "Prepare marketing materials for {noun}",
       "Conduct final QA and testing",
-      "Execute launch‑day plan",
-      "Monitor post‑launch performance",
+      "Execute launch-day plan",
+      "Monitor post-launch performance"
     ],
     create: [
-      "Gather requirements for {noun}",
+      "Define requirements for {noun}",
       "Outline the structure of {noun}",
-      "Build first draft / prototype",
-      "Review and iterate the draft",
-      "Polish and publish {noun}",
+      "Develop the first draft/prototype",
+      "Review and iterate on the draft",
+      "Finalize and polish {noun}"
     ],
     write: [
-      "Research background for {noun}",
-      "Draft detailed outline",
-      "Write first draft of {noun}",
-      "Edit for clarity and style",
-      "Get feedback and finalise",
+      "Research and gather information for {noun}",
+      "Create a detailed outline",
+      "Write the first draft of {noun}",
+      "Edit for clarity, grammar, and style",
+      "Get feedback and finalize the text"
     ],
     design: [
-      "Collect inspiration / moodboard for {noun}",
-      "Sketch initial concepts",
-      "Create high‑fidelity mock‑ups",
-      "Select colours & typography",
-      "Export final assets for {noun}",
+      "Gather inspiration and create a mood board for {noun}",
+      "Sketch initial concepts and wireframes",
+      "Develop high-fidelity mockups for {noun}",
+      "Select color palette and typography",
+      "Prepare final assets and design specs"
     ],
     plan: [
-      "Define objectives for {noun}",
-      "Identify milestones & deliverables",
-      "Allocate resources / budget",
-      "Draft detailed timeline",
-      "List risks & mitigations",
+      "Define the main objectives of {noun}",
+      "Identify key milestones and deliverables",
+      "Allocate resources and set a budget",
+      "Create a detailed timeline",
+      "Identify potential risks and mitigation strategies"
     ],
     default: [
-      "Break the goal into chunks",
-      "Pick the first actionable step",
-      "Assign a deadline",
-      "Gather any required resources",
-    ],
-  } as const;
+      "Break down the major goals",
+      "Identify the first actionable step",
+      "Set a deadline",
+      "Gather necessary resources"
+    ]
+  };
 
-  for (const verb of Object.keys(templates)) {
-    if (lower.startsWith(verb)) {
-      action = verb as keyof typeof templates;
-      noun = title.slice(verb.length).trim();
+  for (const v of Object.keys(templates)) {
+    if (lower.startsWith(v)) {
+      verb = v;
+      noun = title.slice(v.length).trim();
       break;
     }
   }
 
-  return templates[action].map((t) => t.replace("{noun}", noun));
+  return templates[verb].map(t => t.replace("{noun}", noun));
 };
 
 export async function POST(
-  _req: Request,
-  context: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params;
+  const { id } = params;
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   const project = await prisma.project.findFirst({
-    where: { id, userId: session.user.id },
+    where: { id, userId: session.user.id }
   });
-
-  if (!project) {
+  if (!project)
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
-  }
 
-  const subtasks = generateSubtasksFromTitle(project.title).map((text) => ({
-    text,
-    projectId: id,
-  }));
-
-  await prisma.subtask.createMany({ data: subtasks });
+  const subtasks = generateSubtasksFromTitle(project.title);
+  await prisma.subtask.createMany({
+    data: subtasks.map(text => ({ text, projectId: id }))
+  });
 
   return NextResponse.json(
     { message: "Subtasks added!", count: subtasks.length },
