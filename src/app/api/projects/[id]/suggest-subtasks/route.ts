@@ -8,7 +8,7 @@ const templates: Record<string, string[]> = {
   launch: [
     "Finalize launch strategy for {noun}",
     "Prepare marketing materials for {noun}",
-t    "Conduct final QA and testing",
+    "Conduct final QA and testing", // CORRECTED LINE
     "Execute launch-day plan",
     "Monitor post-launch performance"
   ],
@@ -67,9 +67,9 @@ function generate(title: string): string[] {
 /* ---------- POST handler ---------- */
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } } // CORRECTED LINE
+  { params }: { params: { id: string } }
 ) {
-  const { id } = params; // CORRECTED LINE
+  const { id } = params;
 
   const session = await auth();
   if (!session?.user?.id) {
