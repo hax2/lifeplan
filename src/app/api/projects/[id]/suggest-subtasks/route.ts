@@ -67,9 +67,10 @@ function generate(title: string): string[] {
 /* ---------- POST handler ---------- */
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id;
+  // Await the params promise to resolve it
+  const { id } = await params;
 
   const session = await auth();
   if (!session?.user?.id) {
