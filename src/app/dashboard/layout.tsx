@@ -1,7 +1,7 @@
 'use client';
 import { Sidebar } from '@/components/dashboard/Sidebar';
-import { useState } from 'react';
-import { Menu } from 'lucide-react';
+//import { useState } from 'react';
+//import { Menu } from 'lucide-react';
 
 // This is the simplified and correct layout.
 // All the unnecessary code causing the build error has been removed.
