@@ -5,6 +5,7 @@ import { Project } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RotateCcw, Trash2 } from 'lucide-react';
+import { useProjectStore } from '@/lib/store';
 
 export default function ArchivePage() {
   const [archived, setArchived] = useState<Project[]>([]);
