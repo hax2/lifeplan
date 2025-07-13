@@ -1,3 +1,22 @@
+Of course. Here are precise instructions formatted for an AI agent to correct the remaining linting errors.
+
+You can copy and paste these instructions for your agent.
+
+Agent Task Briefing
+
+Objective: Correct two specific ESLint errors in the codebase that are causing the Vercel build to fail.
+
+Task 1: Fix Unused Variable in Project Detail Page
+
+File to Modify: src/app/dashboard/project/[id]/page.tsx
+
+Problem Description: The linter has detected an @typescript-eslint/no-unused-vars error. Inside the fetchProject function, there is a try...catch block. The error variable in the catch statement is defined but never used, which violates the linting rules.
+
+Required Action: You must modify the catch statement to signal to the linter that the variable is intentionally unused. Change catch (error) to catch (_error).
+
+Verification: To ensure the entire file is correct, replace its full contents with the following code. This version includes the required fix.
+
+Generated tsx
 'use client'
 
 import { Project, Subtask } from "@/lib/types";
@@ -25,9 +44,7 @@ export default function ProjectDetailPage() {
                 toast.error("Could not load project details.");
                 router.push('/dashboard');
             }
-        // This comment directive has been added
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (_error) {
+        } catch (_error) { // This line has been corrected
             toast.error("A network error occurred.");
             router.push('/dashboard');
         }
@@ -149,3 +166,43 @@ export default function ProjectDetailPage() {
         </Card>
     );
 }
+
+Task 2: Fix Unused Imports in NextAuth Type Definitions
+
+File to Modify: src/lib/next-auth.d.ts
+
+Problem Description: The linter has identified that the NextAuth and JWT types are being imported at the top of the file but are never explicitly used. This is causing two separate @typescript-eslint/no-unused-vars errors.
+
+Required Action: You must remove the unused NextAuth and JWT imports.
+
+Verification: To ensure the file is completely correct, replace its full contents with the following code, which removes the unnecessary imports.
+
+Generated typescript
+import { type DefaultSession } from "next-auth";
+
+// By declaring this module, we are extending the original NextAuth types.
+declare module "next-auth" {
+  /**
+   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
+   */
+  interface Session {
+    user: {
+      /** The user's id. */
+      id: string;
+    } & DefaultSession["user"]; // ...and the default properties (name, email, image)
+  }
+}
+
+declare module "next-auth/jwt" {
+  /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
+  interface JWT {
+    /** The user's id */
+    sub: string;
+  }
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+TypeScript
+IGNORE_WHEN_COPYING_END
