@@ -1,22 +1,545 @@
-Of course. Here are precise instructions formatted for an AI agent to correct the remaining linting errors.
+Of course. Achieving a smooth, intuitive, and "perfect" user experience is about making the interface feel alive and responsive. Right now, your application is very functional, but interactions can feel abrupt.
 
-You can copy and paste these instructions for your agent.
+I will enhance the user experience by integrating fluid animations and modern UX patterns. We'll use the framer-motion library, which is already in your project, to achieve this.
 
-Agent Task Briefing
+Here is the plan:
 
-Objective: Correct two specific ESLint errors in the codebase that are causing the Vercel build to fail.
+Graceful Loading States: We'll replace jarring "Loading..." text with elegant "skeleton" loaders that mimic the final layout. This reduces perceived load time and makes the app feel more professional.
 
-Task 1: Fix Unused Variable in Project Detail Page
+Fluid List Animations: When items are added to or removed from lists (e.g., creating a project, completing a task), they will gracefully animate in and out instead of just appearing or disappearing.
 
-File to Modify: src/app/dashboard/project/[id]/page.tsx
+Smooth State Transitions: We will animate changes within components, such as a task being marked complete, so the transition is a smooth visual effect rather than an instant switch.
 
-Problem Description: The linter has detected an @typescript-eslint/no-unused-vars error. Inside the fetchProject function, there is a try...catch block. The error variable in the catch statement is defined but never used, which violates the linting rules.
+Enhanced User Feedback: Interactions will provide clearer, more satisfying visual feedback.
 
-Required Action: You must modify the catch statement to signal to the linter that the variable is intentionally unused. Change catch (error) to catch (_error).
+Here are the precise code modifications to implement this vision.
 
-Verification: To ensure the entire file is correct, replace its full contents with the following code. This version includes the required fix.
+1. Polishing the Main Dashboard Page
 
-Generated tsx
+We'll start with the main project view. We will introduce a skeleton loading state and animate the projects as they appear, get completed, or are archived.
+
+Modified file: src/app/dashboard/page.tsx
+Generated javascript
+'use client';
+
+import { useEffect, useState, useRef } from 'react';
+import { Project } from '@/lib/types';
+import { Plus, Archive, CheckCircle2, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// A new Skeleton component for a graceful loading experience
+const ProjectCardSkeleton = () => (
+    <div className="rounded-xl shadow-sm border border-slate-200/80 bg-white p-6">
+        <div className="animate-pulse flex flex-col h-full">
+            <div className="h-5 bg-slate-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-slate-200 rounded w-1/2 mb-4"></div>
+            <div className="space-y-2 flex-grow">
+                <div className="h-4 bg-slate-200 rounded"></div>
+                <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+            </div>
+            <div className="mt-4">
+                <div className="h-2 bg-slate-200 rounded-full"></div>
+            </div>
+        </div>
+    </div>
+);
+
+
+export default function ActivePage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true); // New state for loading
+  const [newProjectDraft, setNewProjectDraft] = useState<Project | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  const fetchProjects = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/projects?done=false');
+      if (!res.ok) throw new Error('Server responded with an error');
+      const data: Project[] = await res.json();
+      setProjects(data);
+    } catch {
+      toast.error('Failed to load projects');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (newProjectDraft && titleInputRef.current) {
+      titleInputRef.current.focus();
+    }
+  }, [newProjectDraft]);
+
+  const handleSaveNewProject = async () => {
+    if (!newProjectDraft || !newProjectDraft.title.trim()) {
+      toast.error('Project title cannot be empty.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newProjectDraft.title,
+          description: newProjectDraft.description,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to create project');
+
+      toast.success('Project created!');
+      setNewProjectDraft(null);
+      fetchProjects(); // This will now trigger a re-render with the new project
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast.error('Failed to create project.');
+    }
+  };
+
+  const handleCancelNewProject = () => {
+    setNewProjectDraft(null);
+  };
+
+  const markDone = async (id: string) => {
+    const originalProjects = [...projects];
+    setProjects(projects.filter(p => p.id !== id)); // Optimistic update
+    
+    await fetch(`/api/projects/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isDone: true }),
+    });
+    toast.success('Project marked as done!');
+    // No need to call fetchProjects(), the item is already removed from the UI.
+  };
+
+  const archiveProject = async (id: string) => {
+     if (window.confirm('Are you sure you want to archive this project?')) {
+        const originalProjects = [...projects];
+        setProjects(projects.filter(p => p.id !== id)); // Optimistic update
+
+        await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+        toast.success('Project archived.');
+        // No need to re-fetch
+     }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-900">Focus Projects</h2>
+        </div>
+        <button
+          onClick={() => {
+            setNewProjectDraft({
+              id: 'new-draft',
+              title: '',
+              description: '',
+              isArchived: false,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              subtasks: [],
+            });
+          }}
+          className="flex items-center gap-2 bg-sky-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors shadow-sm"
+        >
+          <Plus size={20} />
+          <span>New Project</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {isLoading ? (
+            // Show skeletons while loading
+            <>
+                <ProjectCardSkeleton />
+                <ProjectCardSkeleton />
+                <ProjectCardSkeleton />
+            </>
+        ) : (
+          <AnimatePresence>
+            {newProjectDraft && (
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="rounded-xl shadow-xl border border-sky-300/80 bg-sky-50/50 transition-all duration-200 col-span-1 md:col-span-2 xl:col-span-3"
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <input
+                      ref={titleInputRef}
+                      type="text"
+                      value={newProjectDraft.title}
+                      onChange={(e) => setNewProjectDraft({ ...newProjectDraft, title: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveNewProject();
+                        if (e.key === 'Escape') handleCancelNewProject();
+                      }}
+                      className="text-lg font-bold text-slate-900 flex-grow bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 transition-colors"
+                      placeholder="New Project Title"
+                    />
+                    <button onClick={handleCancelNewProject} className="p-1 text-slate-400 hover:text-slate-700 transition-colors" title="Cancel">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <textarea
+                    value={newProjectDraft.description ?? ''}
+                    onChange={(e) => setNewProjectDraft({ ...newProjectDraft, description: e.target.value })}
+                    rows={2}
+                    className="w-full text-slate-500 text-sm bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 resize-none mt-2 transition-colors"
+                    placeholder="Add a description (optional)..."
+                  ></textarea>
+                  <div className="mt-4 flex justify-end space-x-2">
+                    <button onClick={handleCancelNewProject} className="px-3 py-1 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50">Cancel</button>
+                    <button onClick={handleSaveNewProject} className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700">Create</button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            {projects.map((p) => {
+              const doneCount = p.subtasks.filter((s) => s.isCompleted).length;
+              const totalCount = p.subtasks.length;
+              const isCompleted = totalCount > 0 && doneCount === totalCount;
+
+              return (
+                <motion.div
+                  layout // This animates the project card moving into a new position
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }} // Animate out
+                  key={p.id}
+                  onClick={() => router.push(`/dashboard/project/${p.id}`)}
+                  whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
+                  className={cn(
+                    'cursor-pointer rounded-xl shadow-md border border-slate-200/80 bg-white transition-colors duration-300',
+                    isCompleted && 'bg-emerald-50/70 border-emerald-200'
+                  )}
+                >
+                  <div className="p-6 h-full flex flex-col">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-lg font-bold mb-1 text-slate-900 flex-grow">{p.title}</h3>
+                      <div className='flex-shrink-0'>
+                        <button onClick={(e) => { e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors" title="Mark as Done">
+                            <CheckCircle2 className="h-5 w-5" />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); archiveProject(p.id); }} className="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Archive Project">
+                            <Archive className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden flex-grow">{p.description || 'No description.'}</p>
+                    {p.subtasks.length > 0 && (
+                      <div className="mt-4">
+                        <div className="flex justify-between items-center text-sm text-slate-500 mb-2">
+                          <span>Progress</span>
+                          <span>{doneCount} / {totalCount}</span>
+                        </div>
+                        <ProgressBar value={doneCount} max={totalCount} />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        )}
+      </div>
+    </div>
+  );
+}
+
+2. Upgrading the Daily and Weekly Widgets
+
+Your dashboard widgets are perfect candidates for micro-interactions that make the app feel delightful. We will animate task completion and addition.
+
+Modified file: src/components/dashboard/DailyTasksWidget.tsx
+Generated javascript
+'use client';
+import { useEffect, useState, FormEvent } from "react";
+import { CheckCircle2, Circle, Plus } from "lucide-react";
+import toast from "react-hot-toast";
+import { DailyTask } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { ProgressBar } from "../ui/ProgressBar";
+import { Card } from "../ui/Card";
+import { motion, AnimatePresence } from "framer-motion";
+
+const getTodayDateString = () => new Date().toISOString().split('T')[0];
+
+export const DailyTasksWidget = () => {
+  const [tasks, setTasks] = useState<DailyTask[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+
+  const fetchTasks = async () => {
+    const today = getTodayDateString();
+    const response = await fetch(`/api/daily-tasks?date=${today}`);
+    if (response.ok) setTasks(await response.json());
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const handleToggle = async (task: DailyTask) => {
+    const originalTasks = [...tasks];
+    const updatedTasks = tasks.map(t => t.id === task.id ? { ...t, isCompleted: !t.isCompleted } : t);
+    setTasks(updatedTasks);
+
+    const today = getTodayDateString();
+    const method = !task.isCompleted ? 'POST' : 'DELETE';
+    const url = !task.isCompleted
+      ? '/api/daily-tasks/completion'
+      : `/api/daily-tasks/completion?templateId=${task.id}&date=${today}`;
+    
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: method === 'POST' ? JSON.stringify({ templateId: task.id, date: today }) : undefined,
+    });
+
+    if (!response.ok) {
+      toast.error("Failed to update task.");
+      setTasks(originalTasks);
+    }
+  };
+
+  const handleAddTask = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+
+    const res = await fetch('/api/daily-tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTaskTitle }),
+    });
+
+    if (res.ok) {
+      const newTask = await res.json();
+      setTasks([...tasks, newTask]);
+      setNewTaskTitle("");
+      toast.success("Daily task added!");
+    } else {
+      toast.error("Failed to add task.");
+    }
+  };
+
+  const completedCount = tasks.filter(t => t.isCompleted).length;
+  
+  return (
+    <Card>
+      <h2 className="text-xl font-bold mb-4 text-slate-900">Daily Rhythm</h2>
+      <div className="space-y-3">
+        <AnimatePresence>
+          {tasks.map(task => (
+            <motion.button
+              layout // This is key for smooth re-ordering and animation
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              key={task.id}
+              onClick={() => handleToggle(task)}
+              className={cn('w-full flex items-center gap-3 p-3 rounded-lg transition-colors duration-200 text-left')}
+              style={{
+                backgroundColor: task.isCompleted ? 'var(--emerald-50)' : 'var(--slate-100)',
+              }}
+            >
+              <motion.div layout>
+                {task.isCompleted ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                ) : (
+                  <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />
+                )}
+              </motion.div>
+              <motion.span layout className={cn("transition-colors", task.isCompleted && "text-slate-500")}>
+                {task.title}
+              </motion.span>
+              {task.isCompleted && (
+                <motion.div 
+                  className="h-px bg-slate-400 w-full absolute"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  style={{ originX: 0 }}
+                />
+              )}
+            </motion.button>
+          ))}
+        </AnimatePresence>
+      </div>
+       <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
+        <input
+          type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
+          placeholder="Add a daily habit..."
+          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
+        />
+        <button type="submit" className="text-sky-500 hover:text-sky-700" title="Add habit"><Plus size={20} /></button>
+      </form>
+      <div className="mt-6">
+        <p className='text-sm text-slate-500 mb-2 text-center'>{completedCount} of {tasks.length} tasks completed</p>
+        <ProgressBar value={completedCount} max={tasks.length} />
+      </div>
+    </Card>
+  );
+};```
+
+#### Modified file: `src/components/dashboard/WeeklyTasksWidget.tsx`
+```javascript
+'use client';
+import { useEffect, useState, FormEvent } from "react";
+import { Check, Plus } from "lucide-react";
+import toast from "react-hot-toast";
+import { WeeklyTask } from "@/lib/types";
+import { formatDateRelativeToNow } from "@/lib/utils";
+import { Card } from "../ui/Card";
+import { motion, AnimatePresence } from "framer-motion";
+
+export const WeeklyTasksWidget = () => {
+  const [tasks, setTasks] = useState<WeeklyTask[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
+
+  const fetchTasks = async () => {
+    const response = await fetch(`/api/weekly-tasks`);
+    if (response.ok) setTasks(await response.json());
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const handleToggle = async (task: WeeklyTask) => {
+    setCompletedTaskIds(prev => new Set(prev).add(task.id));
+
+    const res = await fetch('/api/weekly-tasks/completion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId: task.id }), // Corrected payload key
+    });
+
+    if (res.ok) {
+      toast.success("Weekly task marked complete!");
+      // Temporarily show completed, then revert button and update data
+      setTimeout(() => {
+        fetchTasks();
+        setCompletedTaskIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(task.id);
+            return newSet;
+        });
+      }, 1500);
+    } else {
+      toast.error("Failed to mark task complete.");
+       setCompletedTaskIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(task.id);
+            return newSet;
+        });
+    }
+  };
+
+  const handleAddTask = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+
+    const res = await fetch('/api/weekly-tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTaskTitle }),
+    });
+
+    if (res.ok) {
+      setNewTaskTitle("");
+      toast.success("Weekly task added!");
+      fetchTasks();
+    } else {
+      toast.error("Failed to add task.");
+    }
+  };
+
+  return (
+    <Card>
+      <h2 className="text-xl font-bold mb-4 text-slate-900">Weekly Habits</h2>
+      <div className="space-y-3">
+        <AnimatePresence>
+          {tasks.map(task => {
+            const isCompleted = completedTaskIds.has(task.id);
+            return (
+            <motion.div
+                layout
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                key={task.id}
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
+            >
+                <span className="flex-grow">{task.title}</span>
+                <span className="text-xs text-slate-500 flex-shrink-0">
+                Last: {formatDateRelativeToNow(task.lastCompletedAt)}
+                </span>
+                <button
+                    onClick={() => handleToggle(task)}
+                    disabled={isCompleted}
+                    className="ml-2 px-3 py-1 text-white rounded-md hover:bg-sky-600 transition-colors text-sm w-20 relative flex items-center justify-center"
+                    style={{ backgroundColor: isCompleted ? '#22c55e' : '#0ea5e9' }}
+                >
+                    <AnimatePresence>
+                    {isCompleted ? (
+                        <motion.span
+                            key="completed"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1"
+                        >
+                            <Check size={16}/> Done
+                        </motion.span>
+                    ) : (
+                        <motion.span key="complete">
+                            Complete
+                        </motion.span>
+                    )}
+                    </AnimatePresence>
+              </button>
+            </motion.div>
+          )})}
+        </AnimatePresence>
+      </div>
+       <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
+        <input
+          type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
+          placeholder="Add a weekly habit..."
+          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
+        />
+        <button type="submit" className="text-sky-500 hover:text-sky-700" title="Add habit"><Plus size={20} /></button>
+      </form>
+    </Card>
+  );
+};
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+JavaScript
+IGNORE_WHEN_COPYING_END
+3. Creating a Flawless Project Detail View
+
+The project detail page is where users spend a lot of time. A skeleton loader and animating the checklist will make it feel incredibly polished and responsive.
+
+Modified file: src/app/dashboard/project/[id]/page.tsx
+Generated javascript
 'use client'
 
 import { Project, Subtask } from "@/lib/types";
@@ -27,6 +550,26 @@ import { useEffect, useState, FormEvent, useCallback } from "react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Detailed skeleton for the project page
+const ProjectDetailSkeleton = () => (
+    <Card className="w-full max-w-4xl mx-auto shadow-2xl">
+        <div className="p-6 border-b border-slate-200 animate-pulse">
+            <div className="h-4 bg-slate-200 rounded w-48 mb-6"></div>
+            <div className="h-8 bg-slate-200 rounded w-1/2 mb-2"></div>
+            <div className="h-5 bg-slate-200 rounded w-3/4"></div>
+        </div>
+        <div className="p-6 animate-pulse">
+            <div className="h-6 bg-slate-200 rounded w-32 mb-6"></div>
+            <div className="space-y-4">
+                <div className="h-12 bg-slate-200 rounded-lg"></div>
+                <div className="h-12 bg-slate-200 rounded-lg"></div>
+                <div className="h-12 bg-slate-200 rounded-lg w-5/6"></div>
+            </div>
+        </div>
+    </Card>
+);
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
@@ -44,7 +587,9 @@ export default function ProjectDetailPage() {
                 toast.error("Could not load project details.");
                 router.push('/dashboard');
             }
-        } catch (_error) { // This line has been corrected
+        // This comment directive has been added
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_error) {
             toast.error("A network error occurred.");
             router.push('/dashboard');
         }
@@ -88,7 +633,7 @@ export default function ProjectDetailPage() {
         
         if (!res.ok) {
             toast.error("Failed to update subtask.");
-            fetchProject();
+            fetchProject(); // Revert on failure
         }
     };
 
@@ -106,7 +651,7 @@ export default function ProjectDetailPage() {
     };
     
     if (!project) {
-        return <div className="text-center p-10 text-slate-500">Loading project...</div>;
+        return <ProjectDetailSkeleton />;
     }
 
     return (
@@ -129,25 +674,31 @@ export default function ProjectDetailPage() {
             <div className="p-6">
                 <h3 className="font-bold mb-4 text-slate-800">Checklist</h3>
                 <div className="space-y-3 mb-6">
+                    <AnimatePresence>
                     {project.subtasks.map(subtask => (
-                        <button
+                        <motion.button
+                            layout
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
                             key={subtask.id}
                             onClick={() => handleToggleSubtask(subtask)}
-                            className={cn(
-                                'w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left',
-                                subtask.isCompleted
-                                ? 'bg-emerald-50 text-slate-500 line-through'
-                                : 'bg-slate-100 hover:bg-slate-200'
-                            )}
+                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-colors', subtask.isCompleted ? 'bg-emerald-50' : 'bg-slate-100 hover:bg-slate-200')}
                         >
-                            {subtask.isCompleted ? (
-                                <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                            ) : (
-                                <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />
+                            {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />}
+                            <span className={cn("flex-grow", subtask.isCompleted && "text-slate-500")}>{subtask.text}</span>
+                            {subtask.isCompleted && (
+                               <motion.div 
+                                className="h-px bg-slate-400 w-full absolute left-0"
+                                initial={{ scaleX: 0 }}
+                                animate={{ scaleX: 1 }}
+                                transition={{ duration: 0.4, ease: 'easeOut' }}
+                                style={{ originX: 0.05 }}
+                                />
                             )}
-                            <span className="flex-grow">{subtask.text}</span>
-                        </button>
+                        </motion.button>
                     ))}
+                    </AnimatePresence>
                     {project.subtasks.length === 0 && (
                         <p className="text-slate-500 text-center py-4">No subtasks for this project yet.</p>
                     )}
@@ -166,43 +717,11 @@ export default function ProjectDetailPage() {
         </Card>
     );
 }
-
-Task 2: Fix Unused Imports in NextAuth Type Definitions
-
-File to Modify: src/lib/next-auth.d.ts
-
-Problem Description: The linter has identified that the NextAuth and JWT types are being imported at the top of the file but are never explicitly used. This is causing two separate @typescript-eslint/no-unused-vars errors.
-
-Required Action: You must remove the unused NextAuth and JWT imports.
-
-Verification: To ensure the file is completely correct, replace its full contents with the following code, which removes the unnecessary imports.
-
-Generated typescript
-import { type DefaultSession } from "next-auth";
-
-// By declaring this module, we are extending the original NextAuth types.
-declare module "next-auth" {
-  /**
-   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
-   */
-  interface Session {
-    user: {
-      /** The user's id. */
-      id: string;
-    } & DefaultSession["user"]; // ...and the default properties (name, email, image)
-  }
-}
-
-declare module "next-auth/jwt" {
-  /** Returned by the `jwt` callback and `getToken`, when using JWT sessions */
-  interface JWT {
-    /** The user's id */
-    sub: string;
-  }
-}
 IGNORE_WHEN_COPYING_START
 content_copy
 download
 Use code with caution.
-TypeScript
+JavaScript
 IGNORE_WHEN_COPYING_END
+
+These changes will fundamentally transform the feel of your application from a static document to a dynamic and responsive workspace. The interface will feel faster, more intuitive, and more satisfying to use.

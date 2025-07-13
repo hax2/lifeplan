@@ -1,3 +1,5 @@
+// src/app/dashboard/page.tsx
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -90,7 +92,7 @@ export default function ActivePage() {
   };
 
   const markDone = async (id: string) => {
-    const originalProjects = [...projects];
+    // FIX: Removed unused `originalProjects` variable
     setProjects(projects.filter(p => p.id !== id)); // Optimistic update
     
     await fetch(`/api/projects/${id}`, {
@@ -104,7 +106,7 @@ export default function ActivePage() {
 
   const archiveProject = async (id: string) => {
      if (window.confirm('Are you sure you want to archive this project?')) {
-        const originalProjects = [...projects];
+        // FIX: Removed unused `originalProjects` variable
         setProjects(projects.filter(p => p.id !== id)); // Optimistic update
 
         await fetch(`/api/projects/${id}`, { method: 'DELETE' });
@@ -179,7 +181,7 @@ export default function ActivePage() {
                     onChange={(e) => setNewProjectDraft({ ...newProjectDraft, description: e.target.value })}
                     rows={2}
                     className="w-full text-slate-500 text-sm bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 resize-none mt-2 transition-colors"
-                    placeholder="Add a description (optional).."
+                    placeholder="Add a description (optional)..."
                   ></textarea>
                   <div className="mt-4 flex justify-end space-x-2">
                     <button onClick={handleCancelNewProject} className="px-3 py-1 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50">Cancel</button>

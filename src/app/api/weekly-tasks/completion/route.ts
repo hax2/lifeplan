@@ -1,3 +1,5 @@
+// src/app/api/weekly-tasks/completion/route.ts
+
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -36,6 +38,7 @@ export async function POST(request: Request) {
     return NextResponse.json(newCompletion, { status: 201 });
   } catch (error) {
     console.error('Error recording weekly task completion:', error);
-    return NextResponse.json({ message: 'Internal server error', error: (error as any).message }, { status: 500 });
+    // FIX: Changed `(error as any)` to `(error as Error)`
+    return NextResponse.json({ message: 'Internal server error', error: (error as Error).message }, { status: 500 });
   }
 }
