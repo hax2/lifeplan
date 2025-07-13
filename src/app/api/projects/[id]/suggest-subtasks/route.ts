@@ -67,9 +67,9 @@ function generate(title: string): string[] {
 /* ---------- POST handler ---------- */
 export async function POST(
   _req: NextRequest,
-  { params }: { params: any }
+  { params }: { params: { id: string } }
 ) {
-  const id = params.id as string;
+  const id = params.id;
 
   const session = await auth();
   if (!session?.user?.id) {
