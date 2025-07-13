@@ -7,9 +7,8 @@ type Context = {
 };
 
 // This is a mock function that simulates a call to a Large Language Model.
-// In a real-world application, you would replace this with a call to a service
-// like OpenAI's GPT, Google's Gemini, or another AI model.
-const generateSubtasksWithAI = async (title: string, _description: string | null): Promise<string[]> => {
+// FIX: Removed the unused '_description' parameter.
+const generateSubtasksWithAI = async (title: string): Promise<string[]> => {
     console.log(`AI: Generating subtasks for project "${title}"...`);
     
     // To simulate the delay of a real AI call.
@@ -63,7 +62,8 @@ export async function POST(req: Request, context: Context) {
         }
 
         // Call our (mock) AI function
-        const suggestedTasks = await generateSubtasksWithAI(project.title, project.description);
+        // FIX: Updated the function call to match the new signature.
+        const suggestedTasks = await generateSubtasksWithAI(project.title);
         
         if (!suggestedTasks || suggestedTasks.length === 0) {
             return NextResponse.json({ error: "AI could not generate subtasks." }, { status: 500 });

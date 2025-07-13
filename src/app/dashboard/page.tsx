@@ -42,7 +42,7 @@ export default function ActivePage() {
       const res = await fetch('/api/projects?done=false');
       if (!res.ok) throw new Error('Server responded with an error');
       const data: Project[] = await res.json();
-      setProjects(data); // Populate the global store
+      setProjects(data); 
     } catch {
       toast.error('Failed to load projects');
     } finally {
@@ -84,8 +84,8 @@ export default function ActivePage() {
 
       toast.success('Project created!');
       setNewProjectDraft(null);
-      fetchProjects(); // Refresh the store
-    } catch (_error) {
+      fetchProjects(); 
+    } catch { // FIX: Removed unused '_error' parameter
       toast.error('Failed to create project.');
     }
   };
@@ -129,7 +129,7 @@ export default function ActivePage() {
 
         const data = await res.json();
         toast.success(`AI added ${data.count} subtasks!`, { id: 'ai-toast' });
-        fetchProjects(); // Refresh the data in the store
+        fetchProjects(); 
     } catch {
         toast.error('An error occurred with the AI.', { id: 'ai-toast' });
     } finally {
