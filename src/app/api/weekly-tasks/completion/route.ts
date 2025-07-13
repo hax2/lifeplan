@@ -36,6 +36,6 @@ export async function POST(request: Request) {
     return NextResponse.json(newCompletion, { status: 201 });
   } catch (error) {
     console.error('Error recording weekly task completion:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
   }
 }
