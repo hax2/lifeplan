@@ -27,12 +27,11 @@ export const WeeklyTasksWidget = () => {
     const res = await fetch('/api/weekly-tasks/completion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: task.id }), // Corrected payload key
+      body: JSON.stringify({ taskId: task.id }),
     });
 
     if (res.ok) {
       toast.success("Weekly task marked complete!");
-      // Temporarily show completed, then revert button and update data
       setTimeout(() => {
         fetchTasks();
         setCompletedTaskIds(prev => {
@@ -93,7 +92,8 @@ export const WeeklyTasksWidget = () => {
                 <button
                     onClick={() => handleToggle(task)}
                     disabled={isCompleted}
-                    className="ml-2 px-3 py-1 text-white rounded-md hover:bg-sky-600 transition-colors text-sm w-20 relative flex items-center justify-center"
+                    // FIX: Added 'relative' to properly contain the animating child spans
+                    className="ml-2 px-3 py-1 text-white rounded-md hover:bg-sky-600 transition-colors text-sm w-20 relative flex items-center justify-center overflow-hidden"
                     style={{ backgroundColor: isCompleted ? '#22c55e' : '#0ea5e9' }}
                 >
                     <AnimatePresence>

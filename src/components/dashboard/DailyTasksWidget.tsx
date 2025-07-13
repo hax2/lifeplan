@@ -76,36 +76,23 @@ export const DailyTasksWidget = () => {
         <AnimatePresence>
           {tasks.map(task => (
             <motion.button
-              layout // This is key for smooth re-ordering and animation
+              layout
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: -20 }}
               key={task.id}
               onClick={() => handleToggle(task)}
-              className={cn('w-full flex items-center gap-3 p-3 rounded-lg transition-colors duration-200 text-left')}
-              style={{
-                backgroundColor: task.isCompleted ? 'var(--emerald-50)' : 'var(--slate-100)',
-              }}
+              // FIX: Added 'relative' to contain the absolute positioned strikethrough
+              className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg transition-colors duration-200 text-left', task.isCompleted ? 'bg-emerald-50' : 'bg-slate-100')}
             >
-              <motion.div layout>
-                {task.isCompleted ? (
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                ) : (
-                  <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />
-                )}
-              </motion.div>
-              <motion.span layout className={cn("transition-colors", task.isCompleted && "text-slate-500")}>
-                {task.title}
-              </motion.span>
-              {task.isCompleted && (
-                <motion.div 
-                  className="h-px bg-slate-400 w-full absolute"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
-                  style={{ originX: 0 }}
-                />
+              {task.isCompleted ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+              ) : (
+                <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />
               )}
+              <span className={cn("transition-colors", task.isCompleted && "text-slate-500 line-through")}>
+                {task.title}
+              </span>
             </motion.button>
           ))}
         </AnimatePresence>

@@ -1,17 +1,15 @@
-// src/app/dashboard/page.tsx
-
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { Project } from '@/lib/types';
-import { Plus, Archive, CheckCircle2, X } from 'lucide-react';
+import { Plus, Archive, CheckCircle2, X, Sparkles, Circle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useProjectStore } from '@/lib/store';
 
-// A new Skeleton component for a graceful loading experience
 const ProjectCardSkeleton = () => (
     <div className="rounded-xl shadow-sm border border-slate-200/80 bg-white p-6">
         <div className="animate-pulse flex flex-col h-full">
@@ -30,9 +28,11 @@ const ProjectCardSkeleton = () => (
 
 
 export default function ActivePage() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // New state for loading
+  const projects = useProjectStore(state => state.projects);
+  const setProjects = useProjectStore(state => state.setProjects);
+  const [isLoading, setIsLoading] = useState(true);
   const [newProjectDraft, setNewProjectDraft] = useState<Project | null>(null);
+  const [aiLoadingProjectId, setAiLoadingProjectId] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -42,7 +42,7 @@ export default function ActivePage() {
       const res = await fetch('/api/projects?done=false');
       if (!res.ok) throw new Error('Server responded with an error');
       const data: Project[] = await res.json();
-      setProjects(data);
+      setProjects(data); // Populate the global store
     } catch {
       toast.error('Failed to load projects');
     } finally {
@@ -51,7 +51,11 @@ export default function ActivePage() {
   };
 
   useEffect(() => {
-    fetchProjects();
+    if (projects.length === 0) {
+        fetchProjects();
+    } else {
+        setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -80,7 +84,7 @@ export default function ActivePage() {
 
       toast.success('Project created!');
       setNewProjectDraft(null);
-      fetchProjects(); // This will now trigger a re-render with the new project
+      fetchProjects(); // Refresh the store
     } catch (error) {
       console.error('Error creating project:', error);
       toast.error('Failed to create project.');
@@ -92,27 +96,48 @@ export default function ActivePage() {
   };
 
   const markDone = async (id: string) => {
-    // FIX: Removed unused `originalProjects` variable
-    setProjects(projects.filter(p => p.id !== id)); // Optimistic update
-    
+    // Optimistic update
+    const currentProjects = useProjectStore.getState().projects;
+    setProjects(currentProjects.filter(p => p.id !== id));
+
     await fetch(`/api/projects/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isDone: true }),
     });
     toast.success('Project marked as done!');
-    // No need to call fetchProjects(), the item is already removed from the UI.
   };
 
   const archiveProject = async (id: string) => {
      if (window.confirm('Are you sure you want to archive this project?')) {
-        // FIX: Removed unused `originalProjects` variable
-        setProjects(projects.filter(p => p.id !== id)); // Optimistic update
-
+        // Optimistic update
+        const currentProjects = useProjectStore.getState().projects;
+        setProjects(currentProjects.filter(p => p.id !== id));
+        
         await fetch(`/api/projects/${id}`, { method: 'DELETE' });
         toast.success('Project archived.');
-        // No need to re-fetch
      }
+  };
+
+  const handleAiSuggest = async (project: Project) => {
+    setAiLoadingProjectId(project.id);
+    toast.loading('The AI is thinking...', { id: 'ai-toast' });
+
+    try {
+        const res = await fetch(`/api/projects/${project.id}/suggest-subtasks`, {
+            method: 'POST',
+        });
+
+        if (!res.ok) throw new Error('AI failed to generate suggestions.');
+
+        const data = await res.json();
+        toast.success(`AI added ${data.count} subtasks!`, { id: 'ai-toast' });
+        fetchProjects(); // Refresh the data in the store
+    } catch (error) {
+        toast.error('An error occurred with the AI.', { id: 'ai-toast' });
+    } finally {
+        setAiLoadingProjectId(null);
+    }
   };
 
   return (
@@ -142,7 +167,6 @@ export default function ActivePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {isLoading ? (
-            // Show skeletons while loading
             <>
                 <ProjectCardSkeleton />
                 <ProjectCardSkeleton />
@@ -194,25 +218,37 @@ export default function ActivePage() {
               const doneCount = p.subtasks.filter((s) => s.isCompleted).length;
               const totalCount = p.subtasks.length;
               const isCompleted = totalCount > 0 && doneCount === totalCount;
+              const subtasksToShow = [
+                ...p.subtasks.filter(s => !s.isCompleted),
+                ...p.subtasks.filter(s => s.isCompleted)
+              ].slice(0, 3);
 
               return (
                 <motion.div
-                  layout // This animates the project card moving into a new position
+                  layout
                   initial={{ opacity: 0, y: 50, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }} // Animate out
+                  exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }}
                   key={p.id}
                   onClick={() => router.push(`/dashboard/project/${p.id}`)}
                   whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
                   className={cn(
-                    'cursor-pointer rounded-xl shadow-md border border-slate-200/80 bg-white transition-colors duration-300',
+                    'cursor-pointer rounded-xl shadow-md border border-slate-200/80 bg-white transition-colors duration-300 flex flex-col',
                     isCompleted && 'bg-emerald-50/70 border-emerald-200'
                   )}
                 >
-                  <div className="p-6 h-full flex flex-col">
+                  <div className="p-6 flex-grow">
                     <div className="flex justify-between items-start">
                       <h3 className="text-lg font-bold mb-1 text-slate-900 flex-grow">{p.title}</h3>
-                      <div className='flex-shrink-0'>
+                      <div className='flex-shrink-0 flex items-center'>
+                         <button 
+                            onClick={(e) => { e.stopPropagation(); handleAiSuggest(p); }}
+                            disabled={aiLoadingProjectId === p.id}
+                            className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 disabled:cursor-not-allowed"
+                            title="Suggest Subtasks with AI"
+                        >
+                            <Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-pulse")} />
+                        </button>
                         <button onClick={(e) => { e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors" title="Mark as Done">
                             <CheckCircle2 className="h-5 w-5" />
                         </button>
@@ -221,17 +257,34 @@ export default function ActivePage() {
                         </button>
                       </div>
                     </div>
-                    <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden flex-grow">{p.description || 'No description.'}</p>
-                    {p.subtasks.length > 0 && (
-                      <div className="mt-4">
-                        <div className="flex justify-between items-center text-sm text-slate-500 mb-2">
-                          <span>Progress</span>
-                          <span>{doneCount} / {totalCount}</span>
+                    <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden">{p.description || 'No description.'}</p>
+                    
+                    {subtasksToShow.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                            <ul className="space-y-1">
+                                {subtasksToShow.map(subtask => (
+                                    <li key={subtask.id} className="flex items-center gap-2 text-sm text-slate-600">
+                                        {subtask.isCompleted 
+                                            ? <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
+                                            : <Circle size={14} className="text-slate-400 flex-shrink-0" />
+                                        }
+                                        <span className={cn('truncate', subtask.isCompleted && 'line-through text-slate-400')}>{subtask.text}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <ProgressBar value={doneCount} max={totalCount} />
-                      </div>
                     )}
                   </div>
+                    
+                  {p.subtasks.length > 0 && (
+                    <div className="mt-auto p-6 pt-4 border-t border-slate-100">
+                      <div className="flex justify-between items-center text-sm text-slate-500 mb-2">
+                        <span>Progress</span>
+                        <span>{doneCount} / {totalCount}</span>
+                      </div>
+                      <ProgressBar value={doneCount} max={totalCount} />
+                    </div>
+                  )}
                 </motion.div>
               );
             })}

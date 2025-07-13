@@ -9,8 +9,8 @@ import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { motion, AnimatePresence } from "framer-motion";
+import { useProjectStore } from "@/lib/store";
 
-// Detailed skeleton for the project page
 const ProjectDetailSkeleton = () => (
     <Card className="w-full max-w-4xl mx-auto shadow-2xl">
         <div className="p-6 border-b border-slate-200 animate-pulse">
@@ -32,30 +32,40 @@ const ProjectDetailSkeleton = () => (
 export default function ProjectDetailPage() {
     const { id } = useParams();
     const router = useRouter();
-    const [project, setProject] = useState<Project | null>(null);
+
+    const getProjectById = useProjectStore(state => state.getProjectById);
+    const updateProjectInStore = useProjectStore(state => state.updateProject);
+    const [project, setProject] = useState<Project | undefined>(getProjectById(id as string));
+    const [isLoading, setIsLoading] = useState(!project);
+
     const [newSubtaskText, setNewSubtaskText] = useState("");
 
     const fetchProject = useCallback(async () => {
         if (!id) return;
+        setIsLoading(true);
         try {
             const res = await fetch(`/api/projects/${id}`);
             if (res.ok) {
-                setProject(await res.json());
+                const fetchedProject = await res.json();
+                setProject(fetchedProject);
+                updateProjectInStore(fetchedProject);
             } else {
                 toast.error("Could not load project details.");
                 router.push('/dashboard');
             }
-        // This comment directive has been added
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_error) {
             toast.error("A network error occurred.");
             router.push('/dashboard');
+        } finally {
+            setIsLoading(false);
         }
-    }, [id, router]);
+    }, [id, router, updateProjectInStore]);
 
     useEffect(() => {
-        fetchProject();
-    }, [fetchProject]);
+        if (!project) {
+            fetchProject();
+        }
+    }, [project, fetchProject]);
 
     const handleAddSubtask = async (e: FormEvent) => {
         e.preventDefault();
@@ -81,7 +91,9 @@ export default function ProjectDetailPage() {
         const updatedSubtasks = project.subtasks.map(s => 
             s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s
         );
-        setProject({ ...project, subtasks: updatedSubtasks });
+        const updatedProject = { ...project, subtasks: updatedSubtasks };
+        setProject(updatedProject);
+        updateProjectInStore(updatedProject);
 
         const res = await fetch(`/api/subtasks/${subtask.id}`, {
             method: 'PUT',
@@ -108,8 +120,19 @@ export default function ProjectDetailPage() {
         }
     };
     
-    if (!project) {
+    if (isLoading) {
         return <ProjectDetailSkeleton />;
+    }
+
+    if (!project) {
+        return (
+             <div className="text-center p-10">
+                <h2 className="text-xl font-semibold">Project not found</h2>
+                <Link href="/dashboard" className="text-sky-600 hover:underline">
+                    Return to dashboard
+                </Link>
+            </div>
+        );
     }
 
     return (
@@ -144,16 +167,7 @@ export default function ProjectDetailPage() {
                             className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-colors', subtask.isCompleted ? 'bg-emerald-50' : 'bg-slate-100 hover:bg-slate-200')}
                         >
                             {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />}
-                            <span className="flex-grow">{subtask.text}</span>
-                            {subtask.isCompleted && (
-                               <motion.div 
-                                className="h-px bg-slate-400 w-full absolute left-0"
-                                initial={{ scaleX: 0 }}
-                                animate={{ scaleX: 1 }}
-                                transition={{ duration: 0.4, ease: 'easeOut' }}
-                                style={{ originX: 0.05 }}
-                                />
-                            )}
+                            <span className={cn("flex-grow", subtask.isCompleted && "text-slate-500 line-through")}>{subtask.text}</span>
                         </motion.button>
                     ))}
                     </AnimatePresence>
