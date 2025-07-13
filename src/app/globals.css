@@ -6,8 +6,5 @@
 }
 
 body {
-  /* Use the slate color palette for the background and base text color */
-  background-color: #f8fafc; /* slate-50 */
-  color: #1e293b; /* slate-800 */
   font-family: var(--font-sans);
 }

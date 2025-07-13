@@ -115,13 +115,11 @@ export default function ActivePage() {
   };
 
   const archiveProject = async (id: string) => {
-     if (window.confirm('Are you sure you want to archive this project?')) {
-        const currentProjects = useProjectStore.getState().projects;
-        setProjects(currentProjects.filter(p => p.id !== id));
-        
-        await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-        toast.success('Project archived.');
-     }
+    const currentProjects = useProjectStore.getState().projects;
+    setProjects(currentProjects.filter(p => p.id !== id));
+    
+    await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+    toast.success('Project archived.');
   };
 
   const handleSubtaskGeneration = async (project: Project) => {
@@ -244,7 +242,7 @@ export default function ActivePage() {
                   layout
                   initial={{ opacity: 0, y: 50, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }}
+                  exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
                   key={p.id}
                   onClick={() => router.push(`/dashboard/project/${p.id}`)}
                   whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
