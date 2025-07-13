@@ -91,13 +91,6 @@ export default function ActivePage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <p className="text-sm text-slate-500">
-            {new Intl.DateTimeFormat('en-US', {
-              weekday: 'long',
-              month: 'short',
-              day: 'numeric',
-            }).format(new Date())}
-          </p>
           <h2 className="text-3xl font-bold text-slate-900">Focus Projects</h2>
         </div>
         <button

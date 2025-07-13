@@ -24,7 +24,13 @@ export const Sidebar = () => {
       <h1 className="text-2xl font-bold text-slate-900 mb-2">
         Samer&apos;s Dashboard
       </h1>
-      <p className="text-slate-500 mb-8 text-sm">Your focus and rhythm command center.</p>
+      <p className="text-slate-500 mb-4 text-sm">
+        {new Intl.DateTimeFormat('en-US', {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric',
+        }).format(new Date())}
+      </p>
 
       <div className="flex-grow space-y-8">
         <DailyTasksWidget />
