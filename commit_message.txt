@@ -1,0 +1,13 @@
+feat: Implement dark mode and enhance UI/UX
+
+This commit introduces a dark mode feature with a toggle button, improving the overall user experience.
+
+Key changes include:
+- **Dark Mode:** Added a dark mode with a toggle button in the sidebar, applying dark styles across the application (dashboard, archive, done, project detail, login, signup pages, and UI components like Card and ProgressBar).
+- **UI/UX Enhancements:**
+    - Fixed the restore button functionality on the archived tasks page.
+    - Refined animations for smoother transitions using `framer-motion` and removed redundant Tailwind CSS transition classes.
+    - Implemented intuitive "Enter" key behavior for new project creation: Enter in the title field moves focus to the description, and Enter in the description field creates the project.
+    - Adjusted the weekly tasks completion button to prevent text overflow.
+    - Ensured the weekly tasks "last done" display immediately updates to "0 days ago" upon completion.
+- **Build Fixes:** Resolved build errors related to PostCSS configuration and missing `autoprefixer` module by updating `postcss.config.mjs` to use `import` statements and ensuring `autoprefixer` is installed.
