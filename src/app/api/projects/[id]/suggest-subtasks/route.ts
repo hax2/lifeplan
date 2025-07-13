@@ -6,44 +6,79 @@ type Context = {
   params: { id: string };
 };
 
-// This is a mock function that simulates a call to a Large Language Model.
-// FIX: Removed the unused '_description' parameter.
-const generateSubtasksWithAI = async (title: string): Promise<string[]> => {
-    console.log(`AI: Generating subtasks for project "${title}"...`);
-    
-    // To simulate the delay of a real AI call.
-    await new Promise(resolve => setTimeout(resolve, 1500));
+/**
+ * A heuristic-based function to generate subtasks based on action verbs in a project title.
+ * This is faster, cheaper, and more predictable than an LLM.
+ * @param title The title of the project.
+ * @returns An array of suggested subtask strings.
+ */
+const generateSubtasksFromTitle = (title: string): string[] => {
+    const lowerTitle = title.toLowerCase();
+    let nounPhrase = title;
+    let action = 'default';
 
-    // Return a predefined, mock response based on keywords in the title.
-    const mockResponses: { [key: string]: string[] } = {
-        "default": [
-            "Outline the main goals",
-            "Research competitors",
-            "Create a timeline",
-            "Draft the initial plan"
+    // A map of action verbs to their corresponding subtask templates.
+    const actionTemplates: { [key: string]: string[] } = {
+        'launch': [
+            "Finalize launch strategy for {noun_phrase}",
+            "Prepare marketing materials for {noun_phrase}",
+            "Conduct final QA and testing",
+            "Execute launch day plan",
+            "Monitor post-launch performance"
         ],
-        "website": [
-            "Design the wireframes",
-            "Choose a color palette",
-            "Develop the homepage",
-            "Set up the hosting environment"
+        'create': [
+            "Define requirements for {noun_phrase}",
+            "Outline the structure of {noun_phrase}",
+            "Develop the first draft/prototype",
+            "Review and iterate on the draft",
+            "Finalize and polish {noun_phrase}"
         ],
-         "marketing": [
-            "Identify target audience",
-            "Develop key messaging",
-            "Choose marketing channels",
-            "Set a budget and KPIs"
+        'write': [
+            "Research and gather information for {noun_phrase}",
+            "Create a detailed outline",
+            "Write the first draft of {noun_phrase}",
+            "Edit for clarity, grammar, and style",
+            "Get feedback and finalize the text"
+        ],
+        'design': [
+            "Gather inspiration and create a mood board for {noun_phrase}",
+            "Sketch initial concepts and wireframes",
+            "Develop high-fidelity mockups for {noun_phrase}",
+            "Select color palette and typography",
+            "Prepare final assets and design specifications"
+        ],
+        'plan': [
+            "Define the main objectives of {noun_phrase}",
+            "Identify key milestones and deliverables",
+            "Allocate resources and set a budget",
+            "Create a detailed timeline",
+            "Identify potential risks and mitigation strategies"
+        ],
+        'default': [
+            "Break down the major goals",
+            "Identify the first actionable step",
+            "Set a deadline",
+            "Gather necessary resources"
         ]
     };
 
-    let key = "default";
-    if (title.toLowerCase().includes("website")) key = "website";
-    if (title.toLowerCase().includes("marketing")) key = "marketing";
-    
-    console.log(`AI: Mock response generated for key "${key}".`);
-    return mockResponses[key];
-};
+    // Find which action verb, if any, is in the title.
+    for (const verb of Object.keys(actionTemplates)) {
+        if (lowerTitle.startsWith(verb)) {
+            action = verb;
+            // Extract the noun phrase after the verb.
+            nounPhrase = title.substring(verb.length).trim();
+            break;
+        }
+    }
 
+    // Replace the placeholder with the actual noun phrase from the title.
+    const subtasks = actionTemplates[action].map(template => 
+        template.replace('{noun_phrase}', nounPhrase)
+    );
+
+    return subtasks;
+};
 
 export async function POST(req: Request, context: Context) {
     const { id } = context.params;
@@ -61,15 +96,9 @@ export async function POST(req: Request, context: Context) {
             return NextResponse.json({ error: "Project not found" }, { status: 404 });
         }
 
-        // Call our (mock) AI function
-        // FIX: Updated the function call to match the new signature.
-        const suggestedTasks = await generateSubtasksWithAI(project.title);
+        // Call our new heuristic function instead of the mock AI.
+        const suggestedTasks = generateSubtasksFromTitle(project.title);
         
-        if (!suggestedTasks || suggestedTasks.length === 0) {
-            return NextResponse.json({ error: "AI could not generate subtasks." }, { status: 500 });
-        }
-        
-        // Format for Prisma's createMany
         const subtasksToCreate = suggestedTasks.map(text => ({
             text,
             projectId: id,
@@ -79,9 +108,9 @@ export async function POST(req: Request, context: Context) {
             data: subtasksToCreate,
         });
 
-        return NextResponse.json({ message: "AI-suggested subtasks added!", count: subtasksToCreate.length }, { status: 201 });
+        return NextResponse.json({ message: "Subtasks added!", count: subtasksToCreate.length }, { status: 201 });
     } catch (error) {
-        console.error("Error generating AI subtasks:", error);
+        console.error("Error generating subtasks:", error);
         return NextResponse.json({ error: "An internal error occurred." }, { status: 500 });
     }
 }

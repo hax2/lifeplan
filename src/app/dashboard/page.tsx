@@ -85,7 +85,7 @@ export default function ActivePage() {
       toast.success('Project created!');
       setNewProjectDraft(null);
       fetchProjects(); 
-    } catch { // FIX: Removed unused '_error' parameter
+    } catch {
       toast.error('Failed to create project.');
     }
   };
@@ -116,22 +116,22 @@ export default function ActivePage() {
      }
   };
 
-  const handleAiSuggest = async (project: Project) => {
+  const handleSubtaskGeneration = async (project: Project) => {
     setAiLoadingProjectId(project.id);
-    toast.loading('The AI is thinking...', { id: 'ai-toast' });
+    toast.loading('Generating subtasks...', { id: 'ai-toast' });
 
     try {
         const res = await fetch(`/api/projects/${project.id}/suggest-subtasks`, {
             method: 'POST',
         });
 
-        if (!res.ok) throw new Error('AI failed to generate suggestions.');
+        if (!res.ok) throw new Error('Failed to generate subtasks.');
 
         const data = await res.json();
-        toast.success(`AI added ${data.count} subtasks!`, { id: 'ai-toast' });
+        toast.success(`${data.count} subtasks added!`, { id: 'ai-toast' });
         fetchProjects(); 
     } catch {
-        toast.error('An error occurred with the AI.', { id: 'ai-toast' });
+        toast.error('An error occurred.', { id: 'ai-toast' });
     } finally {
         setAiLoadingProjectId(null);
     }
@@ -191,7 +191,7 @@ export default function ActivePage() {
                         if (e.key === 'Escape') handleCancelNewProject();
                       }}
                       className="text-lg font-bold text-slate-900 flex-grow bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 transition-colors"
-                      placeholder="New Project Title"
+                      placeholder="Start with an action verb, e.g., 'Launch new website'"
                     />
                     <button onClick={handleCancelNewProject} className="p-1 text-slate-400 hover:text-slate-700 transition-colors" title="Cancel">
                       <X className="h-5 w-5" />
@@ -239,12 +239,12 @@ export default function ActivePage() {
                       <h3 className="text-lg font-bold mb-1 text-slate-900 flex-grow">{p.title}</h3>
                       <div className='flex-shrink-0 flex items-center'>
                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleAiSuggest(p); }}
+                            onClick={(e) => { e.stopPropagation(); handleSubtaskGeneration(p); }}
                             disabled={aiLoadingProjectId === p.id}
                             className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 disabled:cursor-not-allowed"
-                            title="Suggest Subtasks with AI"
+                            title="Auto-generate Subtasks"
                         >
-                            <Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-pulse")} />
+                            <Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-spin")} />
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors" title="Mark as Done">
                             <CheckCircle2 className="h-5 w-5" />
