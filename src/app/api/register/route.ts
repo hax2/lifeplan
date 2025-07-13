@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ user }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     // Handle case where email is already taken
     if (error.code === 'P2002') {
         return NextResponse.json({ error: "Email already exists." }, { status: 409 });

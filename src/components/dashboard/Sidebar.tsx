@@ -8,7 +8,7 @@ import { signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-export const Sidebar = ({ onProjectAction }: { onProjectAction: () => void }) => {
+export const Sidebar = () => {
   const pathname = usePathname();
 
   const navLinkClasses = (href: string) => 
@@ -22,7 +22,7 @@ export const Sidebar = ({ onProjectAction }: { onProjectAction: () => void }) =>
   return (
     <div className="flex flex-col h-full p-6 bg-white border-r border-slate-200">
       <h1 className="text-2xl font-bold text-slate-900 mb-2">
-        Samer's Dashboard
+        Samer&apos;s Dashboard
       </h1>
       <p className="text-slate-500 mb-8 text-sm">Your focus and rhythm command center.</p>
 

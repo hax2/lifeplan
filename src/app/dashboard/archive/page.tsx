@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { Project } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import { RotateCcw, Trash2 } from 'lucide-react';
 
 export default function ArchivePage() {

@@ -1,7 +1,7 @@
 'use client'
 
 import { Project, Subtask } from "@/lib/types";
-import { ArrowLeft, CheckCircle2, Circle, Plus, Archive, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Plus, Archive } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState, FormEvent } from "react";
@@ -28,7 +28,7 @@ export default function ProjectDetailPage() {
 
     useEffect(() => {
         fetchProject();
-    }, [id]);
+    }, [id, fetchProject]);
 
     const handleAddSubtask = async (e: FormEvent) => {
         e.preventDefault();

@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const doneParam = url.searchParams.get("done"); // ?done=true or ?done=false
 
-  const where: any = {
+  const where: { userId: string; isArchived: boolean; isDone?: boolean } = {
     userId: session.user.id,
     isArchived: false,        // always exclude archived here
   };

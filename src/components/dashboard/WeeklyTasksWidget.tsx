@@ -3,7 +3,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { WeeklyTask } from "@/lib/types";
-import { cn, formatDateRelativeToNow } from "@/lib/utils";
+import { formatDateRelativeToNow } from "@/lib/utils";
 import { Card } from "../ui/Card";
 
 export const WeeklyTasksWidget = () => {
