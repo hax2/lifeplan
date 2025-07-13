@@ -28,9 +28,15 @@ export default function ArchivePage() {
         body: JSON.stringify({ id }),
     });
     if (res.ok) {
-        toast.success("Project restored!");
+        toast.success('Project restored!');
         setArchived(archived.filter(p => p.id !== id));
-        fetchArchived();
+
+        const restored = await res.json();
+        // inject straight into the global store – no full refetch
+        useProjectStore.getState().setProjects([
+          restored,
+          ...useProjectStore.getState().projects,
+        ]);
     } else {
         toast.error("Failed to restore project.");
     }
@@ -58,20 +64,20 @@ export default function ArchivePage() {
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Archived Projects</h1>
         <button
           onClick={() => router.push('/dashboard')}
-          className="flex items-center gap-2 bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 transition-colors shadow-sm dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+          className="flex items-center gap-2 bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 transition-colors shadow-sm bg-skin-card text-skin-text hover:bg-skin-card"
         >
           Back to Active Projects
         </button>
       </div>
       {archived.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-dashed dark:bg-slate-800 dark:border-slate-700">
+        <div className="text-center py-16 bg-skin-card rounded-xl border border-dashed border-skin-border">
             <h3 className="text-xl font-medium text-slate-800 dark:text-slate-200">The Archive is Empty</h3>
             <p className="text-slate-500 mt-2 dark:text-slate-400">Projects you archive will appear here.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {archived.map(p => (
-            <div key={p.id} className="relative bg-white p-6 rounded-xl shadow-sm border border-slate-200/80 group dark:bg-slate-800 dark:border-slate-700">
+            <div key={p.id} onClick={() => router.push(`/dashboard/project/${p.id}`)} className="relative bg-skin-card p-6 rounded-xl shadow-sm border border-skin-border group cursor-pointer">
               <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300">{p.title}</h3>
               <p className="text-slate-500 text-sm mt-1 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
               <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -82,11 +88,7 @@ export default function ArchivePage() {
                       <Trash2 size={16} />
                   </button>
               </div>
-               <div
-                onClick={() => router.push(`/dashboard/project/${p.id}`)}
-                className="absolute inset-0 cursor-pointer"
-                title="View Project Details"
-              />
+               {/* root container now handles navigation */}
             </div>
           ))}
         </div>

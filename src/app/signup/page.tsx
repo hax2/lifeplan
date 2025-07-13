@@ -32,15 +32,15 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-slate-950">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg dark:bg-slate-800">
-        <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white">
+    <div className="flex items-center justify-center min-h-screen bg-skin-bg">
+      <div className="w-full max-w-md p-8 space-y-6 bg-skin-card rounded-xl shadow-lg">
+        <h1 className="text-3xl font-bold text-center text-skin-text">
           Create Your Account
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1 dark:text-slate-200">
+            <label htmlFor="email" className="block text-sm font-medium mb-1 text-skin-text">
               Email
             </label>
             <input
@@ -49,14 +49,14 @@ export default function SignUpPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:focus:ring-blue-400"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-skin-card border-skin-border text-skin-text focus:ring-skin-accent"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium mb-1 dark:text-slate-200"
+              className="block text-sm font-medium mb-1 text-skin-text"
             >
               Password
             </label>
@@ -66,24 +66,24 @@ export default function SignUpPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:focus:ring-blue-400"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-skin-card border-skin-border text-skin-text focus:ring-skin-accent"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-700 dark:hover:bg-blue-600"
+            className="w-full py-2 font-semibold text-white bg-skin-accent rounded-md hover:brightness-110 disabled:opacity-50"
           >
             {isLoading ? 'Signing up…' : 'Sign Up'}
           </button>
         </form>
 
-        <p className="text-sm text-center text-gray-600 dark:text-slate-400">
+        <p className="text-sm text-center text-skin-text">
           Already have an account?{' '}
           <Link
             href="/login"
-            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+            className="font-medium text-skin-accent hover:underline"
           >
             Log in
           </Link>

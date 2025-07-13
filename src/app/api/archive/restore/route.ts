@@ -8,9 +8,9 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { id } = await req.json();
-    await prisma.project.update({
+    const project = await prisma.project.update({
         where: { id, userId: session.user.id },
         data: { isArchived: false, isDone: false },
     });
-    return NextResponse.json({ message: "Project restored" });
+    return NextResponse.json(project);
 }

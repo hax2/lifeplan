@@ -11,16 +11,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useProjectStore } from '@/lib/store';
 
 const ProjectCardSkeleton = () => (
-    <div className="rounded-xl shadow-sm border border-slate-200/80 bg-white p-6 dark:bg-slate-800 dark:border-slate-700">
+    <div className="rounded-xl shadow-sm border border-slate-200/80 bg-skin-card p-6 border-skin-border">
         <div className="animate-pulse flex flex-col h-full">
-            <div className="h-5 bg-slate-200 rounded w-3/4 mb-2 dark:bg-slate-700"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/2 mb-4 dark:bg-slate-700"></div>
+            <div className="h-5 bg-slate-200 rounded w-3/4 mb-2 bg-skin-card"></div>
+            <div className="h-4 bg-slate-200 rounded w-1/2 mb-4 bg-skin-card"></div>
             <div className="space-y-2 flex-grow">
-                <div className="h-4 bg-slate-200 rounded dark:bg-slate-700"></div>
-                <div className="h-4 bg-slate-200 rounded w-5/6 dark:bg-slate-700"></div>
+                <div className="h-4 bg-slate-200 rounded bg-skin-card"></div>
+                <div className="h-4 bg-slate-200 rounded w-5/6 bg-skin-card"></div>
             </div>
             <div className="mt-4">
-                <div className="h-2 bg-slate-200 rounded-full dark:bg-slate-700"></div>
+                <div className="h-2 bg-slate-200 rounded-full bg-skin-card"></div>
             </div>
         </div>
     </div>
@@ -35,6 +35,7 @@ export default function ActivePage() {
   const [aiLoadingProjectId, setAiLoadingProjectId] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
+  const hasFocused     = useRef(false);          // 🚀 NEW
   const router = useRouter();
 
   const fetchProjects = useCallback(async () => {
@@ -60,8 +61,9 @@ export default function ActivePage() {
   }, [projects.length, fetchProjects]);
 
   useEffect(() => {
-    if (newProjectDraft && titleInputRef.current) {
-      titleInputRef.current.focus();
+    if (newProjectDraft && !hasFocused.current) {
+      titleInputRef.current?.focus();
+      hasFocused.current = true;                 // one-time
     }
   }, [newProjectDraft]);
 
@@ -133,9 +135,15 @@ export default function ActivePage() {
 
         if (!res.ok) throw new Error('Failed to generate subtasks.');
 
-        const data = await res.json();
-        toast.success(`${data.count} subtasks added!`, { id: 'ai-toast' });
-        fetchProjects(); 
+        const { count } = await res.json();
+        toast.success(`${count} subtasks added!`, { id: 'ai-toast' });
+
+        // pull just this project and patch the store
+        const pRes = await fetch(`/api/projects/${project.id}`);
+        if (pRes.ok) {
+          const updated = await pRes.json();
+          useProjectStore.getState().updateProject(updated);
+        } 
     } catch {
         toast.error('An error occurred.', { id: 'ai-toast' });
     } finally {
@@ -200,10 +208,10 @@ export default function ActivePage() {
                         }
                         if (e.key === 'Escape') handleCancelNewProject();
                       }}
-                      className="text-lg font-bold text-slate-900 flex-grow bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 transition-colors dark:text-white dark:border-slate-600 dark:focus:border-sky-400"
+                      className="text-lg font-bold text-skin-text flex-grow bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 transition-colors"
                       placeholder="Start with an action verb, e.g., 'Launch new website'"
                     />
-                    <button onClick={handleCancelNewProject} className="p-1 text-slate-400 hover:text-slate-700 transition-colors dark:text-slate-500 dark:hover:text-slate-300" title="Cancel">
+                    <button onClick={handleCancelNewProject} className="p-1 text-slate-400 hover:text-slate-700 transition-colors text-skin-text hover:text-skin-text" title="Cancel">
                       <X className="h-5 w-5" />
                     </button>
                   </div>
@@ -218,11 +226,11 @@ export default function ActivePage() {
                       }
                     }}
                     rows={2}
-                    className="w-full text-slate-500 text-sm bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 resize-none mt-2 transition-colors dark:text-slate-400 dark:border-slate-600 dark:focus:border-sky-400"
+                    className="w-full text-slate-500 text-sm bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-sky-500 resize-none mt-2 transition-colors text-skin-text"
                     placeholder="Add a description (optional)..."
                   ></textarea>
                   <div className="mt-4 flex justify-end space-x-2">
-                    <button onClick={handleCancelNewProject} className="px-3 py-1 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-600">Cancel</button>
+                    <button onClick={handleCancelNewProject} className="px-3 py-1 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 bg-skin-card text-skin-text border-skin-border hover:bg-skin-card">Cancel</button>
                     <button onClick={handleSaveNewProject} className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700">Create</button>
                   </div>
                 </div>
@@ -248,44 +256,43 @@ export default function ActivePage() {
                   whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
                   transition={{ duration: 0.4, ease: "easeInOut" }}
                   className={cn(
-                    'cursor-pointer rounded-xl shadow-md border border-slate-200/80 bg-white flex flex-col',
+                    'cursor-pointer rounded-xl shadow-md border border-skin-border bg-skin-card flex flex-col',
                     isCompleted && 'bg-emerald-50/70 border-emerald-200',
-                    'dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100',
                     isCompleted && 'dark:bg-emerald-900/50 dark:border-emerald-700'
                   )}
                 >
                   <div className="p-6 flex-grow">
                     <div className="flex justify-between items-start">
-                      <h3 className="text-lg font-bold mb-1 text-slate-900 flex-grow dark:text-white">{p.title}</h3>
+                      <h3 className="text-lg font-bold mb-1 text-skin-text flex-grow">{p.title}</h3>
                       <div className='flex-shrink-0 flex items-center'>
                          <button 
                             onClick={(e) => { e.stopPropagation(); handleSubtaskGeneration(p); }}
                             disabled={aiLoadingProjectId === p.id}
-                            className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 disabled:cursor-not-allowed dark:text-slate-500 dark:hover:text-sky-400 dark:disabled:text-slate-600"
+                            className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 text-skin-text hover:text-skin-accent disabled:text-skin-text"
                             title="Auto-generate Subtasks"
                         >
                             <Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-spin")} />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors dark:text-slate-500 dark:hover:text-emerald-400" title="Mark as Done">
+                        <button onClick={(e) => { e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors text-skin-text hover:text-emerald-500" title="Mark as Done">
                             <CheckCircle2 className="h-5 w-5" />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); archiveProject(p.id); }} className="p-1 text-slate-400 hover:text-red-500 transition-colors dark:text-slate-500 dark:hover:text-red-400" title="Archive Project">
+                        <button onClick={(e) => { e.stopPropagation(); archiveProject(p.id); }} className="p-1 text-slate-400 hover:text-red-500 transition-colors text-skin-text hover:text-red-500" title="Archive Project">
                             <Archive className="h-5 w-5" />
                         </button>
                       </div>
                     </div>
-                    <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
+                    <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden text-skin-text">{p.description || 'No description.'}</p>
                     
                     {subtasksToShow.length > 0 && (
                         <div className="mt-4 space-y-2">
                             <ul className="space-y-1">
                                 {subtasksToShow.map(subtask => (
-                                    <li key={subtask.id} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                    <li key={subtask.id} className="flex items-center gap-2 text-sm text-slate-600 text-skin-text">
                                         {subtask.isCompleted 
                                             ? <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0 dark:text-emerald-400" />
-                                            : <Circle size={14} className="text-slate-400 flex-shrink-0 dark:text-slate-500" />
+                                            : <Circle size={14} className="text-slate-400 text-skin-text" />
                                         }
-                                        <span className={cn('truncate', subtask.isCompleted && 'line-through text-slate-400 dark:text-slate-500')}>{subtask.text}</span>
+                                        <span className={cn('truncate', subtask.isCompleted && 'line-through text-slate-400 text-skin-text')}>{subtask.text}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -294,8 +301,8 @@ export default function ActivePage() {
                   </div>
                     
                   {p.subtasks.length > 0 && (
-                    <div className="mt-auto p-6 pt-4 border-t border-slate-100 dark:border-slate-700">
-                      <div className="flex justify-between items-center text-sm text-slate-500 mb-2 dark:text-slate-400">
+                    <div className="mt-auto p-6 pt-4 border-t border-skin-border">
+                      <div className="flex justify-between items-center text-sm text-slate-500 mb-2 text-skin-text">
                         <span>Progress</span>
                         <span>{doneCount} / {totalCount}</span>
                       </div>

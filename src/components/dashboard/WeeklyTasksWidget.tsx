@@ -78,44 +78,29 @@ export const WeeklyTasksWidget = () => {
           {tasks.map(task => {
             const isCompleted = completedTaskIds.has(task.id);
             return (
-            <motion.div
+                        <motion.div
                 layout
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 key={task.id}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
+                className="flex items-start gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
                 transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-                <span className="flex-grow">{task.title}</span>
-                <span className="text-xs text-slate-500 flex-shrink-0 dark:text-slate-400">
-                Last: {formatDateRelativeToNow(task.lastCompletedAt)}
-                </span>
+                <div className="flex flex-col flex-grow min-w-0">
+                    <span className="truncate">{task.title}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                        Last: {formatDateRelativeToNow(task.lastCompletedAt)}
+                    </span>
+                </div>
                 <button
                     onClick={() => handleToggle(task)}
                     disabled={isCompleted}
-                    // FIX: Added 'relative' to properly contain the animating child spans
-                    className="ml-2 px-3 py-1 text-white rounded-md hover:bg-sky-600 text-sm w-24 relative flex items-center justify-center overflow-hidden"
-                    style={{ backgroundColor: isCompleted ? '#22c55e' : '#0ea5e9' }}
-                >
-                    <AnimatePresence>
-                    {isCompleted ? (
-                        <motion.span
-                            key="completed"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-1"
-                        >
-                            <Check size={16}/> Done
-                        </motion.span>
-                    ) : (
-                        <motion.span key="complete">
-                            Complete
-                        </motion.span>
+                    className={cn(
+                        'ml-2 px-4 py-1 whitespace-nowrap rounded-md text-sm text-white disabled:opacity-60',
+                        isCompleted ? 'bg-emerald-500' : 'bg-skin-accent hover:brightness-110'
                     )}
-                    </AnimatePresence>
-              </button>
-            </motion.div>
+                >
           )})}
         </AnimatePresence>
       </div>

@@ -1,10 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  /* This variable can be used to reference the font set up in your layout file */
-  --font-sans: var(--font-inter, sans-serif);
-}
+   --font-sans: var(--font-inter, sans-serif);
 
-body {
-  font-family: var(--font-sans);
+  /* LIGHT */
+  --c-bg     : #f8fafc;
+  --c-card   : #ffffff;
+  --c-border : #e2e8f0;
+  --c-text   : #0f172a;
+  --c-accent : #0ea5e9;
+ }
+ 
+ body {
+   font-family: var(--font-sans);
+ }
+
+.dark {
+  /* DARK – graphite, no neon-blue tint */
+  --c-bg     : #0d0d12;
+  --c-card   : #1a1a1d;
+  --c-border : #2d2d30;
+  --c-text   : #e2e8f0;
+  --c-accent : #3b82f6;
 }

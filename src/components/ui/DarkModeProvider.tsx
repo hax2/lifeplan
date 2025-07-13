@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
 
 interface DarkModeContextType {
   darkMode: boolean;
@@ -11,23 +11,16 @@ interface DarkModeContextType {
 const DarkModeContext = createContext<DarkModeContextType | undefined>(undefined);
 
 export const DarkModeProvider = ({ children }: { children: ReactNode }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  // 1)  read once – avoids initial flash
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const stored = localStorage.getItem('darkMode');
+    return stored ? JSON.parse(stored) : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
+  // 2)  reflect state → <html class="dark">
   useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode) {
-      setDarkMode(JSON.parse(savedMode));
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setDarkMode(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.toggle('dark', darkMode);
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
