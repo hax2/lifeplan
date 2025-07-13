@@ -1,4 +1,8 @@
+/* ----------------------------------------------------------------
+ * src/components/dashboard/WeeklyTasksWidget.tsx
+ * ---------------------------------------------------------------- */
 'use client';
+
 import { useEffect, useState, FormEvent } from 'react';
 import { Check, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -12,7 +16,7 @@ const Skeleton = () => (
     {Array.from({ length: 4 }).map((_, i) => (
       <div
         key={i}
-        className="h-10 bg-slate-200 rounded-lg animate-pulse dark:bg-zinc-700"
+        className="h-10 animate-pulse rounded-lg bg-slate-200 dark:bg-zinc-700"
       />
     ))}
   </div>
@@ -26,6 +30,7 @@ export const WeeklyTasksWidget = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
 
+  // -------- data fetching ---------------------------------------------------
   const fetchTasks = async () => {
     setIsLoading(true);
     const res = await fetch('/api/weekly-tasks');
@@ -33,13 +38,14 @@ export const WeeklyTasksWidget = () => {
     setIsLoading(false);
   };
 
-  /* ⬇️ only once on mount */
+  /* fetch once on mount */
   useEffect(() => {
     fetchTasks();
   }, []);
 
+  // -------- handlers --------------------------------------------------------
   const handleToggle = async (task: WeeklyTask) => {
-    // optimistic flag
+    // optimistic UI: flag it completed
     setCompletedTaskIds(prev => new Set(prev).add(task.id));
 
     const res = await fetch('/api/weekly-tasks/completion', {
@@ -61,7 +67,7 @@ export const WeeklyTasksWidget = () => {
       toast.error('Failed to mark task complete.');
     }
 
-    // clear the optimistic flag in either case
+    // clear optimistic flag either way
     setCompletedTaskIds(prev => {
       const next = new Set(prev);
       next.delete(task.id);
@@ -80,7 +86,8 @@ export const WeeklyTasksWidget = () => {
     });
 
     if (res.ok) {
-      setTasks(prev => [...prev, await res.json()]);
+      const newTask = await res.json();      // <- await **outside** setState
+      setTasks(prev => [...prev, newTask]);  // <- synchronous updater
       setNewTaskTitle('');
       toast.success('Weekly task added!');
     } else {
@@ -88,6 +95,7 @@ export const WeeklyTasksWidget = () => {
     }
   };
 
+  // -------- render ----------------------------------------------------------
   return (
     <Card>
       <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">
@@ -159,7 +167,7 @@ export const WeeklyTasksWidget = () => {
           </>
         )}
 
-        {/* add-task form stays outside the ternary but inside the div */}
+        {/* add-task form */}
         <form
           onSubmit={handleAddTask}
           className="mt-4 flex items-center gap-2"
