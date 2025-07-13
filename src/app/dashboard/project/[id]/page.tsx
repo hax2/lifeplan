@@ -8,6 +8,26 @@ import { useEffect, useState, FormEvent, useCallback } from "react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Detailed skeleton for the project page
+const ProjectDetailSkeleton = () => (
+    <Card className="w-full max-w-4xl mx-auto shadow-2xl">
+        <div className="p-6 border-b border-slate-200 animate-pulse">
+            <div className="h-4 bg-slate-200 rounded w-48 mb-6"></div>
+            <div className="h-8 bg-slate-200 rounded w-1/2 mb-2"></div>
+            <div className="h-5 bg-slate-200 rounded w-3/4"></div>
+        </div>
+        <div className="p-6 animate-pulse">
+            <div className="h-6 bg-slate-200 rounded w-32 mb-6"></div>
+            <div className="space-y-4">
+                <div className="h-12 bg-slate-200 rounded-lg"></div>
+                <div className="h-12 bg-slate-200 rounded-lg"></div>
+                <div className="h-12 bg-slate-200 rounded-lg w-5/6"></div>
+            </div>
+        </div>
+    </Card>
+);
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
@@ -71,7 +91,7 @@ export default function ProjectDetailPage() {
         
         if (!res.ok) {
             toast.error("Failed to update subtask.");
-            fetchProject();
+            fetchProject(); // Revert on failure
         }
     };
 
@@ -89,7 +109,7 @@ export default function ProjectDetailPage() {
     };
     
     if (!project) {
-        return <div className="text-center p-10 text-slate-500">Loading project...</div>;
+        return <ProjectDetailSkeleton />;
     }
 
     return (
@@ -112,25 +132,31 @@ export default function ProjectDetailPage() {
             <div className="p-6">
                 <h3 className="font-bold mb-4 text-slate-800">Checklist</h3>
                 <div className="space-y-3 mb-6">
+                    <AnimatePresence>
                     {project.subtasks.map(subtask => (
-                        <button
+                        <motion.button
+                            layout
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
                             key={subtask.id}
                             onClick={() => handleToggleSubtask(subtask)}
-                            className={cn(
-                                'w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left',
-                                subtask.isCompleted
-                                ? 'bg-emerald-50 text-slate-500 line-through'
-                                : 'bg-slate-100 hover:bg-slate-200'
-                            )}
+                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-colors', subtask.isCompleted ? 'bg-emerald-50' : 'bg-slate-100 hover:bg-slate-200')}
                         >
-                            {subtask.isCompleted ? (
-                                <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                            ) : (
-                                <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />
-                            )}
+                            {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />}
                             <span className="flex-grow">{subtask.text}</span>
-                        </button>
+                            {subtask.isCompleted && (
+                               <motion.div 
+                                className="h-px bg-slate-400 w-full absolute left-0"
+                                initial={{ scaleX: 0 }}
+                                animate={{ scaleX: 1 }}
+                                transition={{ duration: 0.4, ease: 'easeOut' }}
+                                style={{ originX: 0.05 }}
+                                />
+                            )}
+                        </motion.button>
                     ))}
+                    </AnimatePresence>
                     {project.subtasks.length === 0 && (
                         <p className="text-slate-500 text-center py-4">No subtasks for this project yet.</p>
                     )}

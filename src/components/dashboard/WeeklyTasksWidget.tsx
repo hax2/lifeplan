@@ -1,14 +1,16 @@
 'use client';
 import { useEffect, useState, FormEvent } from "react";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { WeeklyTask } from "@/lib/types";
 import { formatDateRelativeToNow } from "@/lib/utils";
 import { Card } from "../ui/Card";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const WeeklyTasksWidget = () => {
   const [tasks, setTasks] = useState<WeeklyTask[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
 
   const fetchTasks = async () => {
     const response = await fetch(`/api/weekly-tasks`);
@@ -20,17 +22,32 @@ export const WeeklyTasksWidget = () => {
   }, []);
 
   const handleToggle = async (task: WeeklyTask) => {
+    setCompletedTaskIds(prev => new Set(prev).add(task.id));
+
     const res = await fetch('/api/weekly-tasks/completion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ weeklyTaskId: task.id }),
+      body: JSON.stringify({ taskId: task.id }), // Corrected payload key
     });
 
     if (res.ok) {
       toast.success("Weekly task marked complete!");
-      fetchTasks(); // Re-fetch to update lastCompletedAt
+      // Temporarily show completed, then revert button and update data
+      setTimeout(() => {
+        fetchTasks();
+        setCompletedTaskIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(task.id);
+            return newSet;
+        });
+      }, 1500);
     } else {
       toast.error("Failed to mark task complete.");
+       setCompletedTaskIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(task.id);
+            return newSet;
+        });
     }
   };
 
@@ -57,23 +74,48 @@ export const WeeklyTasksWidget = () => {
     <Card>
       <h2 className="text-xl font-bold mb-4 text-slate-900">Weekly Habits</h2>
       <div className="space-y-3">
-        {tasks.map(task => (
-          <div
-            key={task.id}
-            className="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left bg-slate-100 hover:bg-slate-200"
-          >
-            <span className="flex-grow">{task.title}</span>
-            <span className="text-xs text-slate-500 flex-shrink-0">
-              Last: {formatDateRelativeToNow(task.lastCompletedAt)}
-            </span>
-            <button
-              onClick={() => handleToggle(task)}
-              className="ml-2 px-3 py-1 bg-sky-500 text-white rounded-md hover:bg-sky-600 transition-colors text-sm"
+        <AnimatePresence>
+          {tasks.map(task => {
+            const isCompleted = completedTaskIds.has(task.id);
+            return (
+            <motion.div
+                layout
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                key={task.id}
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
             >
-              Done
-            </button>
-          </div>
-        ))}
+                <span className="flex-grow">{task.title}</span>
+                <span className="text-xs text-slate-500 flex-shrink-0">
+                Last: {formatDateRelativeToNow(task.lastCompletedAt)}
+                </span>
+                <button
+                    onClick={() => handleToggle(task)}
+                    disabled={isCompleted}
+                    className="ml-2 px-3 py-1 text-white rounded-md hover:bg-sky-600 transition-colors text-sm w-20 relative flex items-center justify-center"
+                    style={{ backgroundColor: isCompleted ? '#22c55e' : '#0ea5e9' }}
+                >
+                    <AnimatePresence>
+                    {isCompleted ? (
+                        <motion.span
+                            key="completed"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-1"
+                        >
+                            <Check size={16}/> Done
+                        </motion.span>
+                    ) : (
+                        <motion.span key="complete">
+                            Complete
+                        </motion.span>
+                    )}
+                    </AnimatePresence>
+              </button>
+            </motion.div>
+          )})}
+        </AnimatePresence>
       </div>
        <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
         <input

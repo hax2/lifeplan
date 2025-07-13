@@ -6,6 +6,7 @@ import { DailyTask } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ProgressBar } from "../ui/ProgressBar";
 import { Card } from "../ui/Card";
+import { motion, AnimatePresence } from "framer-motion";
 
 const getTodayDateString = () => new Date().toISOString().split('T')[0];
 
@@ -72,25 +73,42 @@ export const DailyTasksWidget = () => {
     <Card>
       <h2 className="text-xl font-bold mb-4 text-slate-900">Daily Rhythm</h2>
       <div className="space-y-3">
-        {tasks.map(task => (
-          <button
-            key={task.id}
-            onClick={() => handleToggle(task)}
-            className={cn(
-              'w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left',
-              task.isCompleted
-                ? 'bg-emerald-50 text-slate-500 line-through'
-                : 'bg-slate-100 hover:bg-slate-200'
-            )}
-          >
-            {task.isCompleted ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-            ) : (
-              <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />
-            )}
-            <span>{task.title}</span>
-          </button>
-        ))}
+        <AnimatePresence>
+          {tasks.map(task => (
+            <motion.button
+              layout // This is key for smooth re-ordering and animation
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              key={task.id}
+              onClick={() => handleToggle(task)}
+              className={cn('w-full flex items-center gap-3 p-3 rounded-lg transition-colors duration-200 text-left')}
+              style={{
+                backgroundColor: task.isCompleted ? 'var(--emerald-50)' : 'var(--slate-100)',
+              }}
+            >
+              <motion.div layout>
+                {task.isCompleted ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                ) : (
+                  <Circle className="h-5 w-5 text-slate-400 flex-shrink-0" />
+                )}
+              </motion.div>
+              <motion.span layout className={cn("transition-colors", task.isCompleted && "text-slate-500")}>
+                {task.title}
+              </motion.span>
+              {task.isCompleted && (
+                <motion.div 
+                  className="h-px bg-slate-400 w-full absolute"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  style={{ originX: 0 }}
+                />
+              )}
+            </motion.button>
+          ))}
+        </AnimatePresence>
       </div>
        <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
         <input
