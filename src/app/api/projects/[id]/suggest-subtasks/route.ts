@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Define a specific type for the route's context
+interface RouteContext {
+  params: {
+    id: string;
+  };
+}
+
 /* ---------- simple heuristic to create subtasks ---------- */
 const templates: Record<string, string[]> = {
   launch: [
@@ -65,11 +72,8 @@ function generate(title: string): string[] {
 }
 
 /* ---------- POST handler ---------- */
-export async function POST(
-  _req: NextRequest,
-  context: { params: { id: string } } // CORRECTED SIGNATURE
-) {
-  const { id } = context.params; // CORRECTED DESTRUCTURING
+export async function POST(req: NextRequest, context: RouteContext) { // CORRECTED SIGNATURE
+  const { id } = context.params;
 
   const session = await auth();
   if (!session?.user?.id) {
