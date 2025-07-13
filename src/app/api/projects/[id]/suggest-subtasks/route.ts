@@ -9,7 +9,7 @@ type Context = {
 // This is a mock function that simulates a call to a Large Language Model.
 // In a real-world application, you would replace this with a call to a service
 // like OpenAI's GPT, Google's Gemini, or another AI model.
-const generateSubtasksWithAI = async (title: string, description: string | null): Promise<string[]> => {
+const generateSubtasksWithAI = async (title: string, _description: string | null): Promise<string[]> => {
     console.log(`AI: Generating subtasks for project "${title}"...`);
     
     // To simulate the delay of a real AI call.

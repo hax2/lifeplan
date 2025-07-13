@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Project } from '@/lib/types';
 import { Plus, Archive, CheckCircle2, X, Sparkles, Circle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -36,7 +36,7 @@ export default function ActivePage() {
   const titleInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch('/api/projects?done=false');
@@ -48,7 +48,7 @@ export default function ActivePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [setProjects]);
 
   useEffect(() => {
     if (projects.length === 0) {
@@ -56,7 +56,7 @@ export default function ActivePage() {
     } else {
         setIsLoading(false);
     }
-  }, []);
+  }, [projects.length, fetchProjects]);
 
   useEffect(() => {
     if (newProjectDraft && titleInputRef.current) {
@@ -85,8 +85,7 @@ export default function ActivePage() {
       toast.success('Project created!');
       setNewProjectDraft(null);
       fetchProjects(); // Refresh the store
-    } catch (error) {
-      console.error('Error creating project:', error);
+    } catch (_error) {
       toast.error('Failed to create project.');
     }
   };
@@ -96,7 +95,6 @@ export default function ActivePage() {
   };
 
   const markDone = async (id: string) => {
-    // Optimistic update
     const currentProjects = useProjectStore.getState().projects;
     setProjects(currentProjects.filter(p => p.id !== id));
 
@@ -110,7 +108,6 @@ export default function ActivePage() {
 
   const archiveProject = async (id: string) => {
      if (window.confirm('Are you sure you want to archive this project?')) {
-        // Optimistic update
         const currentProjects = useProjectStore.getState().projects;
         setProjects(currentProjects.filter(p => p.id !== id));
         
@@ -133,7 +130,7 @@ export default function ActivePage() {
         const data = await res.json();
         toast.success(`AI added ${data.count} subtasks!`, { id: 'ai-toast' });
         fetchProjects(); // Refresh the data in the store
-    } catch (error) {
+    } catch {
         toast.error('An error occurred with the AI.', { id: 'ai-toast' });
     } finally {
         setAiLoadingProjectId(null);
