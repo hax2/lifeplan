@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 import { parseISO, startOfDay, addDays } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 
 const TIME_ZONE = 'Europe/Stockholm';
 
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   }
 
   // 1. Convert YYYY-MM-DD string to a JS Date at midnight in Stockholm time
-  const zoned = utcToZonedTime(parseISO(dateParam), TIME_ZONE);
+  const zoned = toZonedTime(parseISO(dateParam), TIME_ZONE);
   const targetDate = startOfDay(zoned);
   const nextDate   = addDays(targetDate, 1);
 
