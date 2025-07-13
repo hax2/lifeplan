@@ -131,7 +131,7 @@ model WeeklyTaskCompletion {
   id           String   @id @default(cuid())
   weeklyTaskId String
   weeklyTask   WeeklyTask @relation(fields: [weeklyTaskId], references: [id], onDelete: Cascade)
-  completedAt  DateTime @default(now())
+  completedAt  DateTime  @db.Date
 
   @@unique([weeklyTaskId, completedAt]) // A weekly task can only be completed once at a specific time
 }

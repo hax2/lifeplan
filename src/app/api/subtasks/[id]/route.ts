@@ -19,7 +19,11 @@ export async function PUT(req: Request, context: Context) {
 
     // Security: We can add a check here to ensure the subtask belongs to a project owned by the user
     const updatedSubtask = await prisma.subtask.update({
-        where: { id: id },
+        where: {
+          id,
+          // the parent Project **must** belong to this user
+          project: { userId: session.user.id },
+        },
         data: { isCompleted },
     });
     return NextResponse.json(updatedSubtask);
@@ -34,6 +38,11 @@ export async function DELETE(req: Request, context: Context) {
     const { id } = await context.params; // And also use 'await' here
 
     // Security: Add check here too
-    await prisma.subtask.delete({ where: { id: id } });
+    await prisma.subtask.delete({
+      where: {
+        id,
+        project: { userId: session.user.id },
+      },
+    });
     return NextResponse.json({ message: "Subtask deleted" }, { status: 200 });
 }
