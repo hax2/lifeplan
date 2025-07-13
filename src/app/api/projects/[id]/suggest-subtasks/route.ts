@@ -1,14 +1,7 @@
 /* src/app/api/projects/[id]/suggest-subtasks/route.ts */
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-// Define a specific type for the route's context
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
 
 /* ---------- simple heuristic to create subtasks ---------- */
 const templates: Record<string, string[]> = {
@@ -72,8 +65,13 @@ function generate(title: string): string[] {
 }
 
 /* ---------- POST handler ---------- */
-export async function POST(req: NextRequest, context: RouteContext) { // CORRECTED SIGNATURE
-  const { id } = context.params;
+// THIS IS THE CORRECTED SIGNATURE FOR NEXT.JS v15+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  // Await the promise to get the actual params object
+  const { id } = await params;
 
   const session = await auth();
   if (!session?.user?.id) {
