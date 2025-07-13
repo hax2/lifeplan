@@ -90,11 +90,12 @@ export const WeeklyTasksWidget = () => {
         {isLoading ? (
           <Skeleton />
         ) : (
-          <AnimatePresence>
-            {tasks.map(task => {
-              const isCompleted = completedTaskIds.has(task.id);
-              return (
-                <motion.div
+          <>
+            <AnimatePresence>
+              {tasks.map(task => {
+                const isCompleted = completedTaskIds.has(task.id);
+                return (
+                  <motion.div
                 layout
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -135,9 +136,10 @@ export const WeeklyTasksWidget = () => {
                   </AnimatePresence>
                 </button>
               </motion.div>
-            );
           })}
-        </AnimatePresence>
+            </AnimatePresence>
+          </>
+        )
       </div>
        <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
         <input

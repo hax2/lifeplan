@@ -1,13 +1,36 @@
-feat: Implement dark mode and enhance UI/UX
+feat: Implement comprehensive UI/UX improvements and bug fixes
 
-This commit introduces a dark mode feature with a toggle button, improving the overall user experience.
+This commit introduces a wide range of enhancements and fixes across the application:
 
-Key changes include:
-- **Dark Mode:** Added a dark mode with a toggle button in the sidebar, applying dark styles across the application (dashboard, archive, done, project detail, login, signup pages, and UI components like Card and ProgressBar).
-- **UI/UX Enhancements:**
-    - Fixed the restore button functionality on the archived tasks page.
-    - Refined animations for smoother transitions using `framer-motion` and removed redundant Tailwind CSS transition classes.
-    - Implemented intuitive "Enter" key behavior for new project creation: Enter in the title field moves focus to the description, and Enter in the description field creates the project.
-    - Adjusted the weekly tasks completion button to prevent text overflow.
-    - Ensured the weekly tasks "last done" display immediately updates to "0 days ago" upon completion.
-- **Build Fixes:** Resolved build errors related to PostCSS configuration and missing `autoprefixer` module by updating `postcss.config.mjs` to use `import` statements and ensuring `autoprefixer` is installed.
+1.  **Dark Mode & Color Palette Refinements:**
+    -   Updated `src/app/globals.css` to adjust dark mode accent color and improve contrast for text and card backgrounds.
+    -   Modified `src/app/dashboard/page.tsx` to update the new project card color for better visual consistency in dark mode.
+
+2.  **Reduced Motion Support:**
+    -   Created `src/lib/useReducedMotion.ts` to detect user preference for reduced motion.
+    -   Integrated `useReducedMotion` into `src/components/ui/ProgressBar.tsx` to animate the progress bar only when reduced motion is not preferred.
+
+3.  **ARIA Attributes for Accessibility:**
+    -   Added `role="progressbar"`, `aria-valuenow`, and `aria-valuemax` attributes to the progress bar in `src/components/ui/ProgressBar.tsx` for improved accessibility.
+
+4.  **Skeleton Loading States:**
+    -   Implemented skeleton loading components for `src/components/dashboard/DailyTasksWidget.tsx` and `src/components/dashboard/WeeklyTasksWidget.tsx` to provide better user feedback during data fetching.
+
+5.  **Timezone-Safe Daily Task Queries:**
+    -   Updated `src/app/api/daily-tasks/route.ts` to use `date-fns-tz` for accurate, timezone-safe daily task queries.
+    -   Added `date-fns-tz` as a dependency in `package.json`.
+
+6.  **Prisma Query Logging Control:**
+    -   Configured `src/lib/prisma.ts` to log Prisma queries only in development environments, reducing noise in production logs.
+
+7.  **Archive Widget Polling to SWR:**
+    -   Refactored `src/app/dashboard/archive/page.tsx` to replace interval-based polling with `useSWR` for more efficient data fetching and real-time updates.
+    -   Implemented optimistic updates for restore and delete operations in the archive widget.
+
+8.  **Weekly Task Widget Improvements:**
+    -   Ensured `lastCompletedAt` updates immediately in `src/components/dashboard/WeeklyTasksWidget.tsx` after a task is completed.
+    -   Implemented optimistic UI updates for new weekly tasks in `src/components/dashboard/WeeklyTasksWidget.tsx`.
+
+9.  **Responsive Sidebar (Partial Implementation):**
+    -   Added initial setup for a responsive sidebar in `src/app/dashboard/layout.tsx`.
+    -   *Note: Full implementation of the responsive sidebar requires a Dialog component, which is not currently available in the project's dependencies. Further action is needed to integrate a suitable Dialog component or implement an alternative responsive solution.*

@@ -87,32 +87,36 @@ export const DailyTasksWidget = () => {
         {isLoading ? (
           <Skeleton />
         ) : (
-          <AnimatePresence>
-            {tasks.map(task => (
-              <motion.button
-              layout
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              key={task.id}
-              onClick={() => handleToggle(task)}
-              // FIX: Added 'relative' to contain the absolute positioned strikethrough
-              className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', task.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600')}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-            >
-              {task.isCompleted ? (
-                <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" />
-              ) : (
-                <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 dark:text-slate-500" />
-              )}
-              <span className={cn(task.isCompleted && "text-slate-500 line-through dark:text-slate-400")}>
-                {task.title}
-              </span>
-            </motion.button>
-          ))}
-        </AnimatePresence>
+          <>
+            <AnimatePresence>
+              {tasks.map(task => (
+              return (
+                <motion.button
+                  layout
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  key={task.id}
+                  onClick={() => handleToggle(task)}
+                  // FIX: Added 'relative' to contain the absolute positioned strikethrough
+                  className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', task.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600')}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                  {task.isCompleted ? (
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" />
+                  ) : (
+                    <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 dark:text-slate-500" />
+                  )}
+                  <span className={cn(task.isCompleted && "text-slate-500 line-through dark:text-slate-400")}>
+                    {task.title}
+                  </span>
+                </motion.button>
+              ))}
+            </AnimatePresence>
+          </>
+        )}
       </div>
-       <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
+      <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
         <input
           type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
           placeholder="Add a daily habit..."
