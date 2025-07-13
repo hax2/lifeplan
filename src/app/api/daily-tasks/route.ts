@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+import { parseISO, addDays, startOfDay } from 'date-fns-tz';
+
 // Gets templates and their completion status for a given day
 export async function GET(req: Request) {
     const session = await auth();
@@ -15,9 +17,8 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Date parameter is required" }, { status: 400 });
     }
 
-    const targetDate = new Date(date);
-    const nextDate = new Date(targetDate);
-    nextDate.setDate(targetDate.getDate() + 1);
+    const targetDate = startOfDay(parseISO(date), { timeZone: 'Europe/Stockholm' });
+    const nextDate   = addDays(targetDate, 1);
 
     const templates = await prisma.dailyTaskTemplate.findMany({
         where: { userId: session.user.id },

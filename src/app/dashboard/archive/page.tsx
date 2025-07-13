@@ -8,19 +8,16 @@ import { RotateCcw, Trash2 } from 'lucide-react';
 import { useProjectStore } from '@/lib/store';
 
 export default function ArchivePage() {
-  const [archived, setArchived] = useState<Project[]>([]);
+  import useSWR from 'swr';
+import { useProjectStore } from '@/lib/store';
+
+export default function ArchivePage() {
   const router = useRouter();
 
-  const fetchArchived = () => {
-    fetch('/api/archive')
-      .then(res => (res.ok ? res.json() : Promise.reject(res)))
-      .then((data: Project[]) => setArchived(data))
-      .catch(() => toast.error('Failed to load archived projects'));
-  };
-
-  useEffect(() => {
-    fetchArchived();
-  }, []);
+  const { data: archived = [], isLoading, mutate } = useSWR<Project[]>('/api/archive',
+    url => fetch(url).then(r => r.json()),
+    { refreshInterval: 0 }         // no polling
+  );
 
   const handleRestore = async (id: string) => {
     const res = await fetch('/api/archive/restore', {
@@ -30,7 +27,7 @@ export default function ArchivePage() {
     });
     if (res.ok) {
         toast.success('Project restored!');
-        setArchived(archived.filter(p => p.id !== id));
+        mutate(archived.filter(p => p.id !== id), false); // Optimistic update
 
         const restored = await res.json();
         // inject straight into the global store – no full refetch
@@ -40,11 +37,15 @@ export default function ArchivePage() {
         ]);
     } else {
         toast.error("Failed to restore project.");
+        mutate(); // Revert optimistic update on failure
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure? This will permanently delete the project and all its subtasks.")) return;
+
+    const originalArchived = archived;
+    mutate(archived.filter(p => p.id !== id), false); // Optimistic update
 
     const res = await fetch('/api/archive/delete', {
         method: 'POST',
@@ -53,11 +54,19 @@ export default function ArchivePage() {
     });
     if (res.ok) {
         toast.success("Project permanently deleted.");
-        fetchArchived();
     } else {
         toast.error("Failed to delete project.");
+        mutate(originalArchived); // Revert optimistic update on failure
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-16 bg-skin-card rounded-xl border border-dashed border-skin-border">
+        <h3 className="text-xl font-medium text-slate-800 dark:text-slate-200">Loading Archived Projects...</h3>
+      </div>
+    );
+  }
 
   return (
     <div>

@@ -8,16 +8,27 @@ import { ProgressBar } from "../ui/ProgressBar";
 import { Card } from "../ui/Card";
 import { motion, AnimatePresence } from "framer-motion";
 
+const Skeleton = () => (
+  <div className="space-y-2">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="h-10 bg-slate-200 rounded-lg animate-pulse dark:bg-zinc-700" />
+    ))}
+  </div>
+);
+
 const getTodayDateString = () => new Date().toISOString().split('T')[0];
 
 export const DailyTasksWidget = () => {
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchTasks = async () => {
+    setIsLoading(true);
     const today = getTodayDateString();
     const response = await fetch(`/api/daily-tasks?date=${today}`);
     if (response.ok) setTasks(await response.json());
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -73,9 +84,12 @@ export const DailyTasksWidget = () => {
     <Card>
       <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Daily Rhythm</h2>
       <div className="space-y-3">
-        <AnimatePresence>
-          {tasks.map(task => (
-            <motion.button
+        {isLoading ? (
+          <Skeleton />
+        ) : (
+          <AnimatePresence>
+            {tasks.map(task => (
+              <motion.button
               layout
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}

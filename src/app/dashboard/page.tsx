@@ -191,7 +191,7 @@ export default function ActivePage() {
                 initial={{ opacity: 0, y: -20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="rounded-xl shadow-xl border border-sky-300/80 bg-sky-50/50 col-span-1 md:col-span-2 xl:col-span-3 dark:bg-sky-900/50 dark:border-sky-700/80"
+                className="'rounded-xl shadow-xl border border-sky-300/70 bg-sky-50/60 col-span-1 md:col-span-2 xl:col-span-3 dark:bg-zinc-800 dark:border-zinc-700'"
                 transition={{ duration: 0.4, ease: "easeInOut" }}
               >
                 <div className="p-6">

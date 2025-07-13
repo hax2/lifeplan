@@ -7,15 +7,30 @@ import { cn, formatDateRelativeToNow } from "@/lib/utils";
 import { Card } from "../ui/Card";
 import { motion, AnimatePresence } from "framer-motion";
 
+const Skeleton = () => (
+  <div className="space-y-2">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="h-10 bg-slate-200 rounded-lg animate-pulse dark:bg-zinc-700" />
+    ))}
+  </div>
+);
+
 export const WeeklyTasksWidget = () => {
   const [tasks, setTasks] = useState<WeeklyTask[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchTasks = async () => {
+    setIsLoading(true);
     const response = await fetch(`/api/weekly-tasks`);
     if (response.ok) setTasks(await response.json());
+    setIsLoading(false);
   };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   useEffect(() => {
     fetchTasks();
@@ -72,11 +87,14 @@ export const WeeklyTasksWidget = () => {
     <Card>
       <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Weekly Habits</h2>
       <div className="space-y-3">
-        <AnimatePresence>
-          {tasks.map(task => {
-            const isCompleted = completedTaskIds.has(task.id);
-            return (
-              <motion.div
+        {isLoading ? (
+          <Skeleton />
+        ) : (
+          <AnimatePresence>
+            {tasks.map(task => {
+              const isCompleted = completedTaskIds.has(task.id);
+              return (
+                <motion.div
                 layout
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
