@@ -83,7 +83,7 @@ export const DailyTasksWidget = () => {
               key={task.id}
               onClick={() => handleToggle(task)}
               // FIX: Added 'relative' to contain the absolute positioned strikethrough
-              className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', task.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600')}
+              className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', task.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600')}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
               {task.isCompleted ? (
@@ -102,7 +102,7 @@ export const DailyTasksWidget = () => {
         <input
           type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
           placeholder="Add a daily habit..."
-          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-sky-400"
+          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors dark:bg-zinc-800 dark:border-zinc-600 dark:text-slate-100 dark:focus:border-sky-400"
         />
         <button type="submit" className="text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300" title="Add habit"><Plus size={20} /></button>
       </form>

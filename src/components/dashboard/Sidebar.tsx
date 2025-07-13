@@ -22,7 +22,7 @@ export const Sidebar = () => {
     );
 
   return (
-    <div className="flex flex-col h-full p-6 bg-white border-r border-slate-200 dark:bg-slate-900 dark:border-slate-700">
+    <div className="flex flex-col h-full p-6 bg-white border-r border-slate-200 dark:bg-zinc-950 dark:border-zinc-800">
       <h1 className="text-2xl font-bold text-slate-900 mb-2 dark:text-white">
         Samer&apos;s Dashboard
       </h1>

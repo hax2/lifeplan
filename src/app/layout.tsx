@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-slate-50 text-slate-800 dark:bg-black dark:text-slate-100`}>
         <DarkModeProvider>
           <Toaster position="bottom-center" toastOptions={{
             className: 'bg-gray-800 text-white',

@@ -84,7 +84,7 @@ export const WeeklyTasksWidget = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 key={task.id}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600"
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
                 transition={{ duration: 0.2, ease: "easeInOut" }}
             >
                 <span className="flex-grow">{task.title}</span>
@@ -123,7 +123,7 @@ export const WeeklyTasksWidget = () => {
         <input
           type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
           placeholder="Add a weekly habit..."
-          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-sky-400"
+          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors dark:bg-zinc-800 dark:border-zinc-600 dark:text-slate-100 dark:focus:border-sky-400"
         />
         <button type="submit" className="text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300" title="Add habit"><Plus size={20} /></button>
       </form>
