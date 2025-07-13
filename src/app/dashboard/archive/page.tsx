@@ -8,7 +8,6 @@ import { RotateCcw, Trash2 } from 'lucide-react';
 import { useProjectStore } from '@/lib/store';
 
 import useSWR from 'swr';
-import { useProjectStore } from '@/lib/store';
 
 export default function ArchivePage() {
   const router = useRouter();

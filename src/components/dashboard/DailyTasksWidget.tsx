@@ -90,7 +90,6 @@ export const DailyTasksWidget = () => {
           <>
             <AnimatePresence>
               {tasks.map(task => (
-              return (
                 <motion.button
                   layout
                   initial={{ opacity: 0, y: -10 }}
@@ -107,7 +106,7 @@ export const DailyTasksWidget = () => {
                   ) : (
                     <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 dark:text-slate-500" />
                   )}
-                  <span className={cn(task.isCompleted && "text-slate-500 line-through dark:text-slate-400")}>
+                  <span className={cn(task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
                     {task.title}
                   </span>
                 </motion.button>
@@ -126,7 +125,7 @@ export const DailyTasksWidget = () => {
       </form>
       <div className="mt-6">
         <p className='text-sm text-slate-500 mb-2 text-center dark:text-slate-400'>{completedCount} of {tasks.length} tasks completed</p>
-        <ProgressBar value={completedCount} max={tasks.length} />
+        <ProgressBar value={completedCount} max={tasks.length === 0 ? 1 : tasks.length} />
       </div>
     </Card>
   );
