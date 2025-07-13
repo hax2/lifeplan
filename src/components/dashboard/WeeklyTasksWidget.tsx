@@ -33,14 +33,11 @@ export const WeeklyTasksWidget = () => {
     if (res.ok) {
       toast.success("Weekly task marked complete!");
       setTasks(prevTasks => prevTasks.map(t => t.id === task.id ? { ...t, lastCompletedAt: new Date().toISOString() } : t));
-      setTimeout(() => {
-        fetchTasks();
-        setCompletedTaskIds(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(task.id);
-            return newSet;
-        });
-      }, 1500);
+      setCompletedTaskIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(task.id);
+          return newSet;
+      });
     } else {
       toast.error("Failed to mark task complete.");
        setCompletedTaskIds(prev => {
@@ -62,9 +59,10 @@ export const WeeklyTasksWidget = () => {
     });
 
     if (res.ok) {
+      const newTask = await res.json();
       setNewTaskTitle("");
+      setTasks(prevTasks => [...prevTasks, newTask]);
       toast.success("Weekly task added!");
-      fetchTasks();
     } else {
       toast.error("Failed to add task.");
     }
