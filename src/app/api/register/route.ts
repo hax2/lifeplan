@@ -17,6 +17,18 @@ export async function POST(req: Request) {
       data: {
         email,
         password: hashedPassword,
+        dailyTasks: {
+          create: [
+            { title: 'Work out' },
+            { title: 'Go for a walk' },
+            { title: 'Get your vitamins' },
+          ],
+        },
+        weeklyTasks: {
+          create: [
+            { title: 'Vacuum' },
+          ],
+        },
       },
     });
 
