@@ -237,12 +237,12 @@ export default function ActivePage() {
               </motion.div>
             )}
             {projects.map((p) => {
-              const doneCount = p.subtasks.filter((s) => s.isCompleted).length;
-              const totalCount = p.subtasks.length;
+              const doneCount = (p.subtasks || []).filter((s) => s.isCompleted).length;
+              const totalCount = (p.subtasks || []).length;
               const isCompleted = totalCount > 0 && doneCount === totalCount;
               const subtasksToShow = [
-                ...p.subtasks.filter(s => !s.isCompleted),
-                ...p.subtasks.filter(s => s.isCompleted)
+                ...(p.subtasks || []).filter(s => !s.isCompleted),
+                ...(p.subtasks || []).filter(s => s.isCompleted)
               ].slice(0, 3);
 
               return (
