@@ -4,7 +4,8 @@ import { Project, Subtask } from "@/lib/types";
 import { ArrowLeft, CheckCircle2, Circle, Plus, Archive } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState, FormEvent } from "react";
+// Import useCallback
+import { useEffect, useState, FormEvent, useCallback } from "react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
@@ -15,20 +16,26 @@ export default function ProjectDetailPage() {
     const [project, setProject] = useState<Project | null>(null);
     const [newSubtaskText, setNewSubtaskText] = useState("");
 
-    const fetchProject = async () => {
+    // Wrap the data fetching function in useCallback
+    const fetchProject = useCallback(async () => {
         if (!id) return;
-        const res = await fetch(`/api/projects/${id}`);
-        if (res.ok) {
-            setProject(await res.json());
-        } else {
-            toast.error("Could not load project.");
+        try {
+            const res = await fetch(`/api/projects/${id}`);
+            if (res.ok) {
+                setProject(await res.json());
+            } else {
+                toast.error("Could not load project details.");
+                router.push('/dashboard');
+            }
+        } catch (error) {
+            toast.error("A network error occurred.");
             router.push('/dashboard');
         }
-    };
+    }, [id, router]); // Dependencies for useCallback
 
     useEffect(() => {
         fetchProject();
-    }, [id, fetchProject]);
+    }, [fetchProject]); // Now this dependency is stable
 
     const handleAddSubtask = async (e: FormEvent) => {
         e.preventDefault();
@@ -42,7 +49,7 @@ export default function ProjectDetailPage() {
 
         if (res.ok) {
             setNewSubtaskText("");
-            fetchProject();
+            fetchProject(); // Re-fetch to show the new subtask
         } else {
             toast.error("Failed to add subtask.");
         }
@@ -51,6 +58,7 @@ export default function ProjectDetailPage() {
     const handleToggleSubtask = async (subtask: Subtask) => {
         if (!project) return;
         
+        // Optimistic UI update
         const updatedSubtasks = project.subtasks.map(s => 
             s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s
         );
@@ -64,7 +72,7 @@ export default function ProjectDetailPage() {
         
         if (!res.ok) {
             toast.error("Failed to update subtask.");
-            fetchProject();
+            fetchProject(); // Revert if the API call fails
         }
     };
 
