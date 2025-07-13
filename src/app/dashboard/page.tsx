@@ -87,9 +87,12 @@ export default function ActivePage() {
       setNewProjectDraft(null);
       // We get the newly created project from the API response
       const newProject = await res.json();
-      
-      // And add it directly to our state for a smooth update
-      setProjects([newProject, ...projects]); 
+        
+        // Ensure subtasks is an array, even if the API doesn't return it
+        const projectWithSubtasks = { ...newProject, subtasks: newProject.subtasks || [] };
+        
+        // And add it directly to our state for a smooth update
+        setProjects([projectWithSubtasks, ...projects]); 
     } catch {
       toast.error('Failed to create project.');
     }
