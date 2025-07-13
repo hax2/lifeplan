@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-/* ---------- tiny heuristic to split a title into verb + noun ---------- */
+/* ----------- simple title-to-subtasks heuristic ----------- */
 const templates: Record<string, string[]> = {
   launch: [
     "Finalize launch strategy for {noun}",
@@ -37,7 +37,7 @@ const templates: Record<string, string[]> = {
     "Identify key milestones and deliverables",
     "Allocate resources and set a budget",
     "Create a detailed timeline",
-    "Identify potential risks and mitigations"
+    "Identify potential risks and mitigation strategies"
   ],
   default: [
     "Break down the major goals",
@@ -63,8 +63,7 @@ function generate(title: string): string[] {
   return templates[verb].map(t => t.replace("{noun}", noun));
 }
 
-/* ---------- route handler ---------- */
-/* 2nd-arg type MUST widen to Record<…> to satisfy Next’s check            */
+/* ----------- POST /api/projects/[id]/suggest-subtasks ----------- */
 export async function POST(
   _req: NextRequest,
   { params }: { params: { id: string } & Record<string, string> }
@@ -72,27 +71,24 @@ export async function POST(
   const { id } = params;
 
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const project = await prisma.project.findFirst({
     where: { id, userId: session.user.id }
   });
-  });
+
   if (!project)
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
-  if (!project.title || typeof project.title !== "string") {
-  // If your schema enforces 'title' as a string, the type check below is redundant and can be removed.
-  // If not, keep the type check for safety.
-  if (!project.title /* || typeof project.title !== "string" */) {
-    return NextResponse.json({ error: "Project title is missing or invalid" }, { status: 400 });
-  }
+  const subtasks = generate(project.title);
+
   await prisma.subtask.createMany({
     data: subtasks.map(text => ({ text, projectId: id }))
   });
 
   return NextResponse.json(
-    { message: "Subtasks added", count: subtasks.length },
+    { message: "Subtasks added!", count: subtasks.length },
     { status: 201 }
   );
 }
