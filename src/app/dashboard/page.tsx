@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Project } from '@/lib/types';
-import { Plus, Archive, CheckCircle2, Sparkles, FileText } from 'lucide-react';
+import { Plus, Archive, CheckCircle2, Sparkles, FileText, Circle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -13,7 +13,7 @@ import { useProjectStore } from '@/lib/store';
 import Link from 'next/link';
 
 const ProjectCardSkeleton = () => (
-<div className="rounded-xl shadow-sm border p-6 bg-skin-card border-skin-border">
+<div className="rounded-xl shadow-sm border p-6 bg-skin-card border-skin-border min-h-[280px]">
 <div className="animate-pulse flex flex-col h-full">
 <div className="h-5 bg-slate-200 dark:bg-zinc-700 rounded w-3/4 mb-2"></div>
 <div className="h-4 bg-slate-200 dark:bg-zinc-700 rounded w-1/2 mb-4"></div>
@@ -203,6 +203,8 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
           const doneCount = p.subtasks.filter((s) => s.isCompleted).length;
           const totalCount = p.subtasks.length;
           const isCompleted = totalCount > 0 && doneCount === totalCount;
+          const uncompletedSubtasks = p.subtasks.filter(s => !s.isCompleted).slice(0, 3);
+          const remainingUncompletedCount = p.subtasks.filter(s => !s.isCompleted).length - uncompletedSubtasks.length;
           
           return (
             <Link key={p.id} href={`/dashboard/project/${p.id}`} className="block">
@@ -211,23 +213,50 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                 whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className={cn(
-                  'cursor-pointer rounded-xl shadow-md border bg-skin-card border-skin-border flex flex-col h-full',
+                  'cursor-pointer rounded-xl shadow-md border bg-skin-card border-skin-border flex flex-col h-full min-h-[280px]',
                   isCompleted && 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/50 dark:border-emerald-700'
                 )}
               >
                 <div className="p-6 flex-grow flex flex-col">
-                  <h3 className="text-lg font-bold mb-1 text-skin-text flex-grow">{p.title}</h3>
+                    <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-bold text-skin-text pr-4 flex-1">{p.title}</h3>
+                        <div className="flex items-center gap-1 flex-shrink-0 -mr-2 -mt-2">
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSubtaskGeneration(p); }} disabled={aiLoadingProjectId === p.id} className="p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-sky-500 transition-colors disabled:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-sky-400" title="Auto-generate Subtasks"><Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-spin")} /></button>
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); markDone(p.id); }} className="p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-emerald-500 transition-colors dark:hover:bg-slate-700 dark:hover:text-emerald-400" title="Mark as Done"><CheckCircle2 className="h-5 w-5" /></button>
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); archiveProject(p.id); }} className="p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-red-500 transition-colors dark:hover:bg-slate-700 dark:hover:text-red-400" title="Archive Project"><Archive className="h-5 w-5" /></button>
+                        </div>
+                    </div>
+
                   <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
                   
-                   <div className="flex-shrink-0 flex items-center absolute top-4 right-4 bg-skin-card/50 backdrop-blur-sm rounded-full p-1">
-                       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSubtaskGeneration(p); }} disabled={aiLoadingProjectId === p.id} className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 dark:hover:text-sky-400" title="Auto-generate Subtasks"><Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-spin")} /></button>
-                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors dark:hover:text-emerald-400" title="Mark as Done"><CheckCircle2 className="h-5 w-5" /></button>
-                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); archiveProject(p.id); }} className="p-1 text-slate-400 hover:text-red-500 transition-colors dark:hover:text-red-400" title="Archive Project"><Archive className="h-5 w-5" /></button>
+                    <div className="space-y-3 mt-2 mb-4 flex-grow">
+                    {uncompletedSubtasks.length > 0 ? (
+                        <ul className="space-y-2">
+                        {uncompletedSubtasks.map(subtask => (
+                            <li key={subtask.id} className="flex items-center gap-2.5 text-sm text-skin-text/80">
+                            <Circle size={14} className="text-skin-border flex-shrink-0" />
+                            <span className="truncate">{subtask.text}</span>
+                            </li>
+                        ))}
+                        {remainingUncompletedCount > 0 && (
+                            <li style={{ paddingLeft: '24px' }} className="text-xs text-skin-text/50">+ {remainingUncompletedCount} more</li>
+                        )}
+                        </ul>
+                    ) : totalCount > 0 ? (
+                        <div className="text-center text-sm text-emerald-500 py-3 flex items-center justify-center gap-2">
+                            <CheckCircle2 size={16}/>
+                            <span>All tasks complete!</span>
+                        </div>
+                    ) : (
+                        <div className="text-center text-sm text-skin-text/50 py-3">
+                            No subtasks yet.
+                        </div>
+                    )}
                     </div>
                 </div>
                   
                 {p.subtasks.length > 0 && (
-                  <div className="mt-auto p-6 pt-4 border-t border-skin-border">
+                  <div className="mt-auto p-6 pt-4 border-t border-skin-border/80">
                     <div className="flex justify-between items-center text-sm text-slate-500 mb-2 dark:text-slate-400">
                       <span>Progress</span>
                       <span>{doneCount} / {totalCount}</span>
