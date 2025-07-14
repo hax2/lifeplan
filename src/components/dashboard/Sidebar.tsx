@@ -50,8 +50,9 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
 
       {/* ⚠️ key line: min-h-0 lets the inner flex item shrink,
           overflow-y-auto gives it its own scrollbar */}
-      <div className="flex-grow min-h-0 overflow-y-auto pr-1 space-y-8">
+      <div className="flex-grow min-h-0 overflow-y-auto pr-1 space-y-6">
         <DailyTasksWidget />
+        <hr className="border-skin-border/70" />
         <WeeklyTasksWidget />
       </div>
 

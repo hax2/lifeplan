@@ -87,7 +87,7 @@ export const DailyTasksWidget = () => {
   const completedCount = tasks.filter(t => t.isCompleted).length;
   
   return (
-    <Card>
+    <Card variant="flat" className="space-y-3">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Daily Rhythm</h2>
         <Dialog
