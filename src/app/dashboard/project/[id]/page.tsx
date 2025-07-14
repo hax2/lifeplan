@@ -1,322 +1,127 @@
-'use client'
+import useSWR, { mutate } from 'swr';
+import { useParams } from 'next/navigation';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Plus, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+// import { DndContext, useDraggable, useDroppable } from '@dnd-kit/core'; // Placeholder for dnd-kit
 
-
-import { Project, Subtask } from "@/lib/types";
-import { ArrowLeft, CheckCircle2, Circle, Plus, Archive, Edit, Save, X, Sparkles } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState, FormEvent, useCallback } from "react";
-import toast from "react-hot-toast";
-import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/Card";
-import { motion, AnimatePresence } from "framer-motion";
-import { useProjectStore } from "@/lib/store";
-import {
-  DndContext,
-  closestCenter,
-  useSensor,
-  useSensors,
-  PointerSensor,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-
-const ProjectDetailSkeleton = () => (
-<Card className="w-full max-w-4xl mx-auto shadow-2xl bg-skin-card border-skin-border">
-<div className="p-6 border-b border-skin-border animate-pulse">
-<div className="h-4 bg-slate-200 rounded w-48 mb-6 bg-skin-card"></div>
-<div className="h-8 bg-slate-200 rounded w-1/2 mb-2 bg-skin-card"></div>
-<div className="h-5 bg-slate-200 rounded w-3/4 bg-skin-card"></div>
-</div>
-<div className="p-6 animate-pulse">
-<div className="h-6 bg-slate-200 rounded w-32 mb-6 bg-skin-card"></div>
-<div className="space-y-4">
-<div className="h-12 bg-slate-200 rounded-lg bg-skin-card"></div>
-<div className="h-12 bg-slate-200 rounded-lg bg-skin-card"></div>
-<div className="h-12 bg-slate-200 rounded-lg w-5/6 dark:bg-slate-700"></div>
-</div>
-</div>
-</Card>
-);
-
-// SortableSubtask component for dnd-kit
-function SortableSubtask({ subtask, onClick, isCompleted }: { subtask: Subtask; onClick: () => void; isCompleted: boolean }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: subtask.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : undefined,
-    opacity: isDragging ? 0.7 : 1,
-  };
-
-  return (
-    <motion.button
-      ref={setNodeRef}
-      style={style}
-      layout="position"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-      key={subtask.id}
-      onClick={onClick}
-      className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-[background,color] duration-150', isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700')}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-      {...attributes}
-      {...listeners}
-    >
-      {isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 text-skin-text/50" />}
-      <span className={cn("flex-grow", isCompleted && "text-slate-500 line-through dark:text-slate-400")}>{subtask.text}</span>
-    </motion.button>
-  );
-}
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function ProjectDetailPage() {
-const { id } = useParams();
-const router = useRouter();
+  const { id } = useParams();
+  const { data: project, isLoading } = useSWR(id ? `/api/projects/${id}` : null, fetcher);
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [newSubtask, setNewSubtask] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
-const { getProjectById, updateProject, removeProject } = useProjectStore();
-const [project, setProject] = useState<Project | undefined>(getProjectById(id as string));
-const [isLoading, setIsLoading] = useState(!project);
-const [isEditing, setIsEditing] = useState(false);
-const [editData, setEditData] = useState({ title: '', description: '' });
-const [aiLoading, setAiLoading] = useState(false);
-
-const [newSubtaskText, setNewSubtaskText] = useState("");
-
-const fetchProject = useCallback(async () => {
-    if (!id) return;
-    setIsLoading(true);
-    try {
-        const res = await fetch(`/api/projects/${id}`);
-        if (res.ok) {
-            const fetchedProject = await res.json();
-            setProject(fetchedProject);
-            updateProject(fetchedProject);
-            setEditData({ title: fetchedProject.title, description: fetchedProject.description || '' });
-        } else {
-            toast.error("Could not load project details.");
-            router.push('/dashboard');
-        }
-    } catch {
-        toast.error("A network error occurred.");
-        router.push('/dashboard');
-    } finally {
-        setIsLoading(false);
+  React.useEffect(() => {
+    if (project) {
+      setTitle(project.title);
+      setDescription(project.description || '');
     }
-}, [id, router, updateProject]);
+  }, [project]);
 
-useEffect(() => {
-    if (!project) {
-        fetchProject();
-    } else {
-         setEditData({ title: project.title, description: project.description || '' });
-    }
-}, [project, fetchProject]);
+  if (isLoading || !project) {
+    return <Skeleton className="h-96 w-full" />;
+  }
 
-const handleEditSave = async () => {
-    if (!project) return;
-    const toastId = toast.loading('Saving...');
-    try {
-        const res = await fetch(`/api/projects/${project.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(editData),
-        });
-        if (res.ok) {
-            const updatedProject = await res.json();
-            setProject(p => p ? {...p, ...updatedProject} : undefined);
-            updateProject(updatedProject);
-            toast.success('Project updated!', { id: toastId });
-            setIsEditing(false);
-        } else { throw new Error('Failed to save'); }
-    } catch {
-        toast.error('Could not save changes.', { id: toastId });
-    }
-};
-
-const handleAddSubtask = async (e: FormEvent) => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value);
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value);
+  const handleAddSubtask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSubtaskText.trim() || !project) return;
-
-    const tempId = `temp-${Date.now()}`;
-    const newOptimisticSubtask: Subtask = { id: tempId, text: newSubtaskText, isCompleted: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    
-    const updater = (p: Project | undefined) => p ? { ...p, subtasks: [...(p.subtasks || []), newOptimisticSubtask] } : undefined;
-    setProject(updater);
-    setNewSubtaskText("");
-
-    const res = await fetch('/api/subtasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: newSubtaskText, projectId: project.id }) });
-
-    if (res.ok) {
-        const createdSubtask = await res.json();
-        const finalUpdater = (p: Project | undefined) => {
-            if (!p) return undefined;
-            const finalSubtasks = (p.subtasks || []).map(s => s.id === tempId ? createdSubtask : s);
-            updateProject({ ...p, subtasks: finalSubtasks });
-            return { ...p, subtasks: finalSubtasks };
-        };
-        setProject(finalUpdater);
-    } else {
-        toast.error("Failed to add subtask.");
-        setProject(p => p ? { ...p, subtasks: (p.subtasks || []).filter(s => s.id !== tempId) } : undefined);
-    }
-};
-
-const handleToggleSubtask = async (subtask: Subtask) => {
-    if (!project) return;
-    
-    const updatedSubtasks = (project.subtasks || []).map(s => s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s);
-    setProject(p => p ? { ...p, subtasks: updatedSubtasks } : undefined);
-    updateProject({ ...project, subtasks: updatedSubtasks });
-
-    const res = await fetch(`/api/subtasks/${subtask.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isCompleted: !subtask.isCompleted }) });
-    
-    if (!res.ok) {
-        toast.error("Failed to update subtask.");
-        fetchProject(); // Revert on failure
-    }
-};
-
-const handleAction = async (action: 'archive' | 'done') => {
-    if (!project || (action === 'archive' && !window.confirm("Are you sure?"))) return;
-
-    removeProject(project.id);
-    router.push('/dashboard');
-
-    if (action === 'archive') {
-        await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
-        window.dispatchEvent(new CustomEvent('projectArchiveChange'));
-        toast.success("Project archived.");
-    } else if (action === 'done') {
-        await fetch(`/api/projects/${project.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isDone: true }) });
-        toast.success("Project marked as done.");
-    }
-};
-
-const handleSubtaskGeneration = async () => {
-    if (!project) return;
+    if (!newSubtask.trim()) return;
+    // TODO: POST /api/subtasks { text: newSubtask, projectId: id }
+    setNewSubtask('');
+    mutate(`/api/projects/${id}`);
+  };
+  const handleToggleSubtask = async () => {
+    // TODO: PUT /api/subtasks/[id] { isCompleted }
+    mutate(`/api/projects/${id}`);
+  };
+  const handleSuggestSubtasks = async () => {
     setAiLoading(true);
-    toast.loading('Generating subtasks...', { id: 'ai-toast' });
-    try {
-        const res = await fetch(`/api/projects/${project.id}/suggest-subtasks`, { method: 'POST' });
-        if (!res.ok) throw new Error('Failed to generate subtasks.');
-        toast.success(`Subtasks added!`, { id: 'ai-toast' });
-        await fetchProject();
-    } catch {
-        toast.error('An error occurred.', { id: 'ai-toast' });
-    } finally {
-        setAiLoading(false);
-    }
-};
+    // TODO: POST /api/projects/[id]/suggest-subtasks
+    await mutate(`/api/projects/${id}`);
+    setAiLoading(false);
+  };
 
-const sensors = useSensors(useSensor(PointerSensor));
+  const subtasks = project.subtasks || [];
+  const doneCount = subtasks.filter((s: unknown) => (s as { isCompleted: boolean }).isCompleted).length;
+  const totalCount = subtasks.length;
 
-const handleSubtaskDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event;
-  if (!over || active.id === over.id || !project) return;
-  const oldIndex = project.subtasks.findIndex(s => s.id === active.id);
-  const newIndex = project.subtasks.findIndex(s => s.id === over.id);
-  if (oldIndex === -1 || newIndex === -1) return;
-  const newSubtasks = arrayMove(project.subtasks, oldIndex, newIndex);
-  setProject(p => p ? { ...p, subtasks: newSubtasks } : undefined);
-  updateProject({ ...project, subtasks: newSubtasks });
-  // TODO: Persist order to backend
-  // await fetch('/api/subtasks/reorder', { method: 'POST', body: JSON.stringify({ projectId: project.id, subtaskIds: newSubtasks.map(s => s.id) }) });
-};
-
-if (isLoading) return <motion.div layout="position"><ProjectDetailSkeleton /></motion.div>;
-if (!project) return null;
-
-return (
-    <motion.div layout="position" layoutId={id as string}>
-        <Card className="w-full max-w-4xl mx-auto shadow-2xl bg-skin-card border-skin-border">
-            <div className="p-6 border-b border-skin-border">
-                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-skin-text/60 hover:text-skin-accent/80 mb-4">
-                    <ArrowLeft size={16} />
-                    Back to All Projects
-                </Link>
-                <div className="flex justify-between items-start gap-4">
-                    {isEditing ? (
-                        <div className="flex-grow">
-                             <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="text-3xl font-bold text-skin-text bg-transparent border-b-2 border-skin-border focus:border-skin-accent focus:outline-none w-full" />
-                             <textarea value={editData.description} onChange={e => setEditData({...editData, description: e.target.value})} className="text-skin-text mt-1 bg-transparent border-b-2 border-skin-border focus:border-skin-accent focus:outline-none w-full resize-none" />
-                        </div>
-                    ) : (
-                        <div className="flex-grow">
-                            <h1 className="text-3xl font-bold text-skin-text">{project.title}</h1>
-                            <p className="text-skin-text/60 text-sm mt-1">{project.description || ''}</p>
-                        </div>
-                    )}
-                    <div className="flex-shrink-0 flex items-center gap-1 bg-skin-card/50 backdrop-blur-sm rounded-full p-1 border border-skin-border">
-                         {isEditing ? (
-                            <>
-                                <button onClick={handleEditSave} className="p-2 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-full" title="Save Changes"><Save size={20}/></button>
-                                <button onClick={() => setIsEditing(false)} className="p-2 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-full" title="Cancel"><X size={20}/></button>
-                            </>
-                         ) : (
-                            <>
-                                <button onClick={() => setIsEditing(true)} className="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 rounded-full" title="Edit Project"><Edit size={20}/></button>
-                                <button onClick={handleSubtaskGeneration} disabled={aiLoading} className="p-2 text-slate-500 hover:text-sky-600 disabled:opacity-50 dark:hover:text-sky-400 rounded-full" title="Auto-generate Subtasks">
-                                    <Sparkles className={cn("h-5 w-5", aiLoading && "animate-spin")} />
-                                </button>
-                                <button onClick={() => handleAction('done')} className="p-2 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-full" title="Mark as Done"><CheckCircle2 size={20}/></button>
-                                <button onClick={() => handleAction('archive')} className="p-2 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-full" title="Archive Project"><Archive size={20} /></button>
-                            </>
-                         )}
-                    </div>
-                </div>
-            </div>
-            <div className="p-6">
-                <h3 className="text-xl font-bold mb-4 text-skin-text">Checklist</h3>
-                <div className="space-y-3 mb-6">
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleSubtaskDragEnd}
-                    >
-                      <SortableContext
-                        items={project.subtasks.map(s => s.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <AnimatePresence>
-                          {(project.subtasks || []).map(subtask => (
-                            <SortableSubtask
-                              key={subtask.id}
-                              subtask={subtask}
-                              onClick={() => handleToggleSubtask(subtask)}
-                              isCompleted={subtask.isCompleted}
-                            />
-                          ))}
-                        </AnimatePresence>
-                      </SortableContext>
-                    </DndContext>
-                </div>
-                <form onSubmit={handleAddSubtask} className="flex items-center gap-3">
-                    <input
-                        type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)}
-                        placeholder="Add a new checklist item..."
-                        className="w-full px-4 py-2 text-md border border-skin-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-skin-accent focus:border-skin-accent bg-skin-card text-skin-text"
-                    />
-                    <button type="submit" className="p-3 bg-skin-accent text-white rounded-md hover:brightness-110 disabled:opacity-50 transition-colors" disabled={!newSubtaskText.trim()} title="Add item">
-                        <Plus size={24} />
-                    </button>
-                </form>
-            </div>
-        </Card>
-    </motion.div>
-);
-}
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <Card className="mb-6 p-8">
+        <div className="flex items-center gap-4 mb-4">
+          {editing ? (
+            <Input value={title} onChange={handleTitleChange} className="text-2xl font-bold" />
+          ) : (
+            <h1 className="text-2xl font-bold flex-1">{project.title}</h1>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => setEditing(!editing)}>
+            {editing ? 'Save' : 'Edit'}
+          </Button>
+        </div>
+        <div className="mb-4">
+          {editing ? (
+            <Input value={description} onChange={handleDescriptionChange} placeholder="Description" />
+          ) : (
+            <p className="text-secondary text-base">{project.description}</p>
+          )}
+        </div>
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-c-text-secondary">Progress</span>
+            <span className="text-xs text-c-text-secondary">{doneCount} / {totalCount}</span>
+          </div>
+          <ProgressBar value={doneCount} max={totalCount} />
+        </div>
+      </Card>
+      <Card className="p-8 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Subtasks</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<Sparkles size={18} />}
+            isLoading={aiLoading}
+            onClick={handleSuggestSubtasks}
+          >
+            Suggest Subtasks
+          </Button>
+        </div>
+        {/* TODO: dnd-kit drag-and-drop for subtasks */}
+        <ul className="space-y-2 mb-4">
+          {subtasks.length === 0 ? (
+            <li className="text-secondary">No subtasks yet.</li>
+          ) : (
+            (subtasks as unknown[]).map((subtask) => (
+              <li key={(subtask as { id: string }).id} className="flex items-center gap-2">
+                <Checkbox
+                  checked={(subtask as { isCompleted: boolean }).isCompleted}
+                  onChange={() => handleToggleSubtask()}
+                />
+                <span className={(subtask as { isCompleted: boolean }).isCompleted ? 'line-through text-secondary' : ''}>{(subtask as { text: string }).text}</span>
+              </li>
+            ))
+          )}
+        </ul>
+        <form onSubmit={handleAddSubtask} className="flex gap-2">
+          <Input
+            value={newSubtask}
+            onChange={e => setNewSubtask(e.target.value)}
+            placeholder="Add a new subtask..."
+          />
+          <Button type="submit" variant="primary" icon={<Plus size={18} />}>Add</Button>
+        </form>
+      </Card>
+    </div>
+  );
+} 

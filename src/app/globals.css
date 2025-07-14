@@ -1,29 +1,54 @@
 @import "tailwindcss";
 
 :root {
-   --font-sans: var(--font-inter, sans-serif);
+  --font-sans: var(--font-inter, sans-serif);
 
-  /* LIGHT */
-  --c-bg     : #f8fafc;
-  --c-card   : #ffffff;
-  --c-border : #e2e8f0;
-  --c-text   : #0f172a;
-  --c-accent : #0ea5e9;
- }
- 
- body {
-   font-family: var(--font-sans);
-   background-color: var(--c-bg);
-   color: var(--c-text);
- }
+  /* LIGHT MODE */
+  --c-bg: #f7f7f8; /* Slightly warmer off-white */
+  --c-card: #ffffff;
+  --c-border: #e5e7eb; /* Softer border */
+  --c-text: #111827; /* Softer black */
+  --c-text-secondary: #6b7280; /* For descriptions, metadata */
+  --c-accent: #3b82f6; /* Friendly, accessible blue */
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--c-bg);
+  color: var(--c-text);
+}
 
 .dark {
-  /* DARK - REFINED PALETTE */
-  --c-bg     : #18181b;  /* zinc-900 */
-  --c-card   : #27272a;  /* zinc-800 */
-  --c-border : #3f3f46;  /* zinc-700 */
-  --c-text   : #f1f5f9;
-  --c-accent : #60a5fa;  /* tailwind sky-400 */
+  /* DARK MODE */
+  --c-bg: #111111; /* True black for OLED */
+  --c-card: #1e1e1e; /* Dark grey */
+  --c-border: #3a3a3a;
+  --c-text: #f5f5f5; /* Off-white */
+  --c-text-secondary: #a3a3a3;
+  --c-accent: #60a5fa; /* Vibrant blue */
+}
+
+h1 {
+  font-size: 2.25rem; /* 36px */
+  font-weight: bold;
+}
+h2 {
+  font-size: 1.875rem; /* 30px */
+  font-weight: bold;
+}
+h3 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: bold;
+}
+
+body, p, span, label, input, textarea, button {
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.text-secondary {
+  color: var(--c-text-secondary);
+  font-size: 0.875rem;
 }
 
 /* Ensure all elements use CSS variables */

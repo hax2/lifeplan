@@ -1,75 +1,79 @@
-'use client';
-
-import Link from 'next/link';
-import { DailyTasksWidget } from "./DailyTasksWidget";
-import { WeeklyTasksWidget } from "./WeeklyTasksWidget";
-import { LogOut, Sun, Moon, X } from 'lucide-react';
-import { signOut } from 'next-auth/react';
-import { useDarkMode } from '@/components/ui/DarkModeProvider';
+import React from 'react';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { LogOut, Sun, Moon, X, LayoutDashboard, Check, Archive } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
-  const { darkMode, toggleDarkMode } = useDarkMode();
+// Placeholder widgets for now
+const DailyTasksWidget = () => <Card className="mb-4">Daily Tasks Widget</Card>;
+const WeeklyTasksWidget = () => <Card>Weekly Tasks Widget</Card>;
 
+export interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+  user?: { name: string; email: string };
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  isOpen,
+  onClose,
+  darkMode,
+  toggleDarkMode,
+  user,
+}) => {
   return (
-    <div className="flex flex-col h-full p-6 bg-skin-card border-r border-skin-border">
-      {/* Close button for mobile */}
-      {onClose && (
-        <div className="flex justify-end mb-4 md:hidden">
+    <aside
+      className={cn(
+        'fixed inset-y-0 left-0 z-40 w-72 bg-[var(--c-card)] border-r border-[var(--c-border)] flex flex-col transition-transform duration-300',
+        isOpen ? 'translate-x-0' : '-translate-x-full',
+        'md:static md:translate-x-0 md:w-64 md:shadow-none'
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-[var(--c-border)]">
+        <div>
+          <h1 className="text-2xl font-bold">Samer&apos;s Dashboard</h1>
+          {user && (
+            <div className="text-secondary text-sm mt-1">{user.name}</div>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="md:hidden"
+          onClick={onClose}
+          icon={<X size={20} />}
+          aria-label="Close sidebar"
+        />
+      </div>
+
+      {/* Widgets (scrollable) */}
+      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <DailyTasksWidget />
+        <WeeklyTasksWidget />
+      </div>
+
+      {/* Bottom Navigation (fixed) */}
+      <div className="border-t border-[var(--c-border)] p-6">
+        <nav className="flex flex-col gap-2 mb-4">
+          <Button variant="ghost" size="sm" icon={<LayoutDashboard size={18} />}>Active</Button>
+          <Button variant="ghost" size="sm" icon={<Check size={18} />}>Done</Button>
+          <Button variant="ghost" size="sm" icon={<Archive size={18} />}>Archive</Button>
+        </nav>
+        <div className="flex flex-col gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={onClose}
-            className="btn-icon"
-          >
-            <X size={20} />
-          </Button>
-        </div>
-      )}
-      <h1 className="text-2xl font-bold text-skin-text mb-2">
-        Samer&apos;s Dashboard
-      </h1>
-      <p className="text-skin-text/60 mb-4 text-sm">
-        {new Intl.DateTimeFormat('en-US', {
-          weekday: 'long',
-          month: 'short',
-          day: 'numeric',
-        }).format(new Date())}
-      </p>
-
-      <div className="flex flex-col flex-grow min-h-0">
-        <div className="flex-grow min-h-0 pr-1 space-y-3">
-          <DailyTasksWidget />
-          <hr className="border-skin-border/70" />
-          <WeeklyTasksWidget />
-        </div>
-        <div className="mt-4 flex flex-col gap-1">
-          <Link href="/dashboard" className="block text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent">
-            Active
-          </Link>
-          <Link href="/dashboard/done" className="block text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent">
-            Done
-          </Link>
-          <Link href="/dashboard/archive" className="block text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent">
-            Archived
-          </Link>
-          <hr className="my-2 border-skin-border/70" />
-          <button
+            icon={darkMode ? <Sun size={18} /> : <Moon size={18} />}
             onClick={toggleDarkMode}
-            className="flex items-center gap-2 text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent"
           >
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
             {darkMode ? 'Light Mode' : 'Dark Mode'}
-          </button>
-          <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="flex items-center gap-2 text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent"
-          >
-            <LogOut size={16} />
-            Sign Out
-          </button>
+          </Button>
+          <Button variant="ghost" size="sm" icon={<LogOut size={18} />}>Sign Out</Button>
         </div>
       </div>
-    </div>
+    </aside>
   );
-};
+}; 
