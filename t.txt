@@ -1,0 +1,598 @@
+Of course. I've actioned your requests, focusing on creating a much smoother and more interactive user experience. Here are the key changes and the corresponding files.
+
+Summary of Changes
+
+Optimistic Subtask Updates: When you add a subtask on the project detail page, it now appears instantly in the list without a page refresh. A temporary version is shown while the real one saves in the background, making the UI feel incredibly fast.
+
+Enhanced Project Detail View: The "Mark as Done" and "Auto-generate Subtasks" buttons from the main dashboard are now also present in the project detail header, providing consistent and convenient access to these key actions.
+
+Seamless Animated Transitions: This is the most significant change. I've implemented a shared layout animation using Framer Motion.
+
+When you click a project card on the dashboard, it smoothly expands into the full detail view.
+
+When you navigate back, the detail view seamlessly shrinks back into its card on the dashboard.
+
+This required creating a new wrapper component to handle the page transitions and modifying the dashboard layout.
+
+Smoother "New Project" Form: The "New Project" form no longer expands to take up the full width of the screen. It now appears gracefully as a standard-sized card at the top of the grid, making for a much less jarring and more polished experience.
+
+Here are the new and modified files that bring these features to life.
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/components/PageTransitionWrapper.tsx">
+'use client';
+
+
+import { AnimatePresence } from 'framer-motion';
+
+/**
+
+This wrapper component uses Framer Motion's AnimatePresence to enable
+
+shared layout animations between pages. When a component with a layoutId
+
+is removed from one page and another with the same layoutId is added
+
+to the next, AnimatePresence will animate the transition.
+*/
+export const PageTransitionWrapper = ({ children }: { children: React.ReactNode }) => {
+// mode="popLayout" is ideal for animations where elements are added/removed
+// and we want other elements to animate to their new positions smoothly.
+return <AnimatePresence mode="popLayout">{children}</AnimatePresence>;
+};
+
+</file>
+
+<file path="src/app/dashboard/layout.tsx">
+'use client';
+
+
+import { Sidebar } from '@/components/dashboard/Sidebar';
+import { PageTransitionWrapper } from '@/components/PageTransitionWrapper';
+
+export default function DashboardLayout({
+children,
+}: {
+children: React.ReactNode;
+}) {
+return (
+<div className="flex h-screen bg-skin-bg text-skin-text font-sans">
+<aside className="w-80 h-full bg-skin-card border-r border-skin-border flex-shrink-0">
+<Sidebar />
+</aside>
+<main className="flex-1 h-full overflow-y-auto">
+{/* The p-8 is moved inside the wrapper to ensure page content
+fades in and out smoothly during transitions. */}
+<PageTransitionWrapper>
+<div className="p-8">
+{children}
+</div>
+</PageTransitionWrapper>
+</main>
+</div>
+);
+}
+</file>
+
+<file path="src/app/dashboard/page.tsx">
+'use client';
+
+
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { Project } from '@/lib/types';
+import { Plus, Archive, CheckCircle2, X, Sparkles, Circle, FileText } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
+import { ProgressBar } from '@/components/ui/ProgressBar';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useProjectStore } from '@/lib/store';
+import Link from 'next/link';
+
+const ProjectCardSkeleton = () => (
+<div className="rounded-xl shadow-sm border p-6 bg-skin-card border-skin-border">
+<div className="animate-pulse flex flex-col h-full">
+<div className="h-5 bg-slate-200 dark:bg-zinc-700 rounded w-3/4 mb-2"></div>
+<div className="h-4 bg-slate-200 dark:bg-zinc-700 rounded w-1/2 mb-4"></div>
+<div className="space-y-2 flex-grow">
+<div className="h-4 bg-slate-200 dark:bg-zinc-700 rounded"></div>
+<div className="h-4 bg-slate-200 dark:bg-zinc-700 rounded w-5/6"></div>
+</div>
+<div className="mt-4">
+<div className="h-2 bg-slate-200 dark:bg-zinc-700 rounded-full"></div>
+</div>
+</div>
+</div>
+);
+
+const EmptyState = ({ onClickNew }: { onClickNew: () => void }) => (
+<div className="col-span-1 md:col-span-2 xl:col-span-3 text-center py-16 bg-skin-card rounded-xl border border-dashed border-skin-border">
+<FileText className="mx-auto h-12 w-12 text-slate-400" />
+<h3 className="mt-4 text-xl font-medium text-slate-800 dark:text-slate-200">No Active Projects</h3>
+<p className="text-slate-500 mt-2 dark:text-slate-400">Get started by creating a new project.</p>
+<div className="mt-6">
+<button
+onClick={onClickNew}
+className="flex items-center mx-auto gap-2 bg-skin-accent text-white font-semibold px-4 py-2 rounded-lg hover:brightness-110 transition-colors shadow-sm"
+>
+<Plus size={20} />
+<span>Create New Project</span>
+</button>
+</div>
+</div>
+);
+
+export default function ActivePage() {
+const { projects, setProjects, addProject, removeProject, updateProject } = useProjectStore();
+const [isLoading, setIsLoading] = useState(true);
+const [newProjectDraft, setNewProjectDraft] = useState<Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'isDone' | 'subtasks'> & { title: string, description: string | null } | null>(null);
+const [aiLoadingProjectId, setAiLoadingProjectId] = useState<string | null>(null);
+const titleInputRef = useRef<HTMLInputElement>(null);
+const router = useRouter();
+
+const fetchProjects = useCallback(async () => {
+setIsLoading(true);
+try {
+const res = await fetch('/api/projects?done=false');
+if (!res.ok) throw new Error('Server responded with an error');
+const data: Project[] = await res.json();
+setProjects(data);
+} catch {
+toast.error('Failed to load projects');
+} finally {
+setIsLoading(false);
+}
+}, [setProjects]);
+
+useEffect(() => {
+if (projects.length === 0) {
+fetchProjects();
+} else {
+setIsLoading(false);
+}
+}, []);
+
+useEffect(() => {
+if (newProjectDraft) {
+titleInputRef.current?.focus();
+}
+}, [newProjectDraft]);
+
+const handleStartNewProject = () => {
+setNewProjectDraft({ title: '', description: '' });
+};
+
+const handleSaveNewProject = async () => {
+if (!newProjectDraft || !newProjectDraft.title.trim()) {
+toast.error('Project title cannot be empty.');
+return;
+}
+
+Generated code
+try {
+  const res = await fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newProjectDraft),
+  });
+
+  if (!res.ok) throw new Error('Failed to create project');
+
+  const newProject = await res.json();
+  addProject({ ...newProject, subtasks: [] });
+  toast.success('Project created!');
+  setNewProjectDraft(null);
+} catch {
+  toast.error('Failed to create project.');
+}
+
+
+};
+
+const markDone = async (id: string) => {
+removeProject(id);
+await fetch(/api/projects/${id}, {
+method: 'PATCH',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ isDone: true }),
+});
+toast.success('Project marked as done!');
+};
+
+const archiveProject = async (id: string) => {
+removeProject(id);
+await fetch(/api/projects/${id}, { method: 'DELETE' });
+window.dispatchEvent(new CustomEvent('projectArchiveChange'));
+toast.success('Project archived.');
+};
+
+const handleSubtaskGeneration = async (project: Project) => {
+setAiLoadingProjectId(project.id);
+toast.loading('Generating subtasks...', { id: 'ai-toast' });
+try {
+const res = await fetch(/api/projects/${project.id}/suggest-subtasks, { method: 'POST' });
+if (!res.ok) throw new Error('Failed to generate subtasks.');
+const { count } = await res.json();
+const pRes = await fetch(/api/projects/${project.id});
+if (pRes.ok) {
+const updated = await pRes.json();
+updateProject(updated);
+toast.success(${count} subtasks added!, { id: 'ai-toast' });
+}
+} catch {
+toast.error('An error occurred.', { id: 'ai-toast' });
+} finally {
+setAiLoadingProjectId(null);
+}
+};
+
+return (
+<motion.div>
+<div className="flex justify-between items-center mb-6">
+<h2 className="text-3xl font-bold text-slate-900 dark:text-white">Active Projects</h2>
+<button
+onClick={handleStartNewProject}
+className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 py-2 rounded-lg hover:brightness-110 transition-colors shadow-sm"
+>
+<Plus size={20} />
+<span>New Project</span>
+</button>
+</div>
+
+Generated code
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    {isLoading ? (
+        Array.from({ length: 3 }).map((_, i) => <ProjectCardSkeleton key={i} />)
+    ) : (
+      <AnimatePresence>
+        {newProjectDraft && (
+          <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+            className="rounded-xl shadow-xl border border-sky-300/80 bg-sky-50/50 dark:bg-sky-900/50 dark:border-sky-700/80"
+            transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+          >
+            <div className="p-6">
+              <input
+                ref={titleInputRef}
+                type="text"
+                value={newProjectDraft.title}
+                onChange={(e) => setNewProjectDraft({ ...newProjectDraft, title: e.target.value })}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewProject(); if (e.key === 'Escape') setNewProjectDraft(null); }}
+                className="text-lg font-bold text-skin-text w-full bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-skin-accent transition-colors"
+                placeholder="Start with an action verb..."
+              />
+              <textarea
+                value={newProjectDraft.description ?? ''}
+                onChange={(e) => setNewProjectDraft({ ...newProjectDraft, description: e.target.value })}
+                rows={2}
+                className="w-full text-slate-500 text-sm bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-skin-accent resize-none mt-2 transition-colors dark:text-slate-400"
+                placeholder="Add a description (optional)..."
+              ></textarea>
+              <div className="mt-4 flex justify-end space-x-2">
+                <button onClick={() => setNewProjectDraft(null)} className="px-3 py-1 border rounded-md shadow-sm text-sm font-medium bg-skin-card text-skin-text border-skin-border hover:bg-slate-50 dark:hover:bg-zinc-800">Cancel</button>
+                <button onClick={handleSaveNewProject} className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-skin-accent hover:brightness-110">Create</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {projects.map((p) => {
+          const doneCount = p.subtasks.filter((s) => s.isCompleted).length;
+          const totalCount = p.subtasks.length;
+          const isCompleted = totalCount > 0 && doneCount === totalCount;
+          
+          return (
+            <Link key={p.id} href={`/dashboard/project/${p.id}`} className="block">
+              <motion.div
+                layoutId={p.id}
+                whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className={cn(
+                  'cursor-pointer rounded-xl shadow-md border bg-skin-card border-skin-border flex flex-col h-full',
+                  isCompleted && 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/50 dark:border-emerald-700'
+                )}
+              >
+                <div className="p-6 flex-grow flex flex-col">
+                  <h3 className="text-lg font-bold mb-1 text-skin-text flex-grow">{p.title}</h3>
+                  <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
+                  
+                   <div className="flex-shrink-0 flex items-center absolute top-4 right-4 bg-skin-card/50 backdrop-blur-sm rounded-full p-1">
+                       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSubtaskGeneration(p); }} disabled={aiLoadingProjectId === p.id} className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 dark:hover:text-sky-400" title="Auto-generate Subtasks"><Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-spin")} /></button>
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors dark:hover:text-emerald-400" title="Mark as Done"><CheckCircle2 className="h-5 w-5" /></button>
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); archiveProject(p.id); }} className="p-1 text-slate-400 hover:text-red-500 transition-colors dark:hover:text-red-400" title="Archive Project"><Archive className="h-5 w-5" /></button>
+                    </div>
+                </div>
+                  
+                {p.subtasks.length > 0 && (
+                  <div className="mt-auto p-6 pt-4 border-t border-skin-border">
+                    <div className="flex justify-between items-center text-sm text-slate-500 mb-2 dark:text-slate-400">
+                      <span>Progress</span>
+                      <span>{doneCount} / {totalCount}</span>
+                    </div>
+                    <ProgressBar value={doneCount} max={totalCount} />
+                  </div>
+                )}
+              </motion.div>
+            </Link>
+          );
+        })}
+         {projects.length === 0 && !newProjectDraft && <EmptyState onClickNew={handleStartNewProject} />}
+      </AnimatePresence>
+    )}
+  </div>
+</motion.div>
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+IGNORE_WHEN_COPYING_END
+
+);
+}
+</file>
+
+<file path="src/app/dashboard/project/[id]/page.tsx">
+'use client'
+
+
+import { Project, Subtask } from "@/lib/types";
+import { ArrowLeft, CheckCircle2, Circle, Plus, Archive, Edit, Save, X, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState, FormEvent, useCallback } from "react";
+import toast from "react-hot-toast";
+import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/Card";
+import { motion, AnimatePresence } from "framer-motion";
+import { useProjectStore } from "@/lib/store";
+
+const ProjectDetailSkeleton = () => (
+<Card className="w-full max-w-4xl mx-auto shadow-2xl bg-skin-card border-skin-border">
+<div className="p-6 border-b border-skin-border animate-pulse">
+<div className="h-4 bg-slate-200 rounded w-48 mb-6 bg-skin-card"></div>
+<div className="h-8 bg-slate-200 rounded w-1/2 mb-2 bg-skin-card"></div>
+<div className="h-5 bg-slate-200 rounded w-3/4 bg-skin-card"></div>
+</div>
+<div className="p-6 animate-pulse">
+<div className="h-6 bg-slate-200 rounded w-32 mb-6 bg-skin-card"></div>
+<div className="space-y-4">
+<div className="h-12 bg-slate-200 rounded-lg bg-skin-card"></div>
+<div className="h-12 bg-slate-200 rounded-lg bg-skin-card"></div>
+<div className="h-12 bg-slate-200 rounded-lg w-5/6 dark:bg-slate-700"></div>
+</div>
+</div>
+</Card>
+);
+
+export default function ProjectDetailPage() {
+const { id } = useParams();
+const router = useRouter();
+
+Generated code
+const { getProjectById, updateProject, removeProject } = useProjectStore();
+const [project, setProject] = useState<Project | undefined>(getProjectById(id as string));
+const [isLoading, setIsLoading] = useState(!project);
+const [isEditing, setIsEditing] = useState(false);
+const [editData, setEditData] = useState({ title: '', description: '' });
+const [aiLoading, setAiLoading] = useState(false);
+
+const [newSubtaskText, setNewSubtaskText] = useState("");
+
+const fetchProject = useCallback(async () => {
+    if (!id) return;
+    setIsLoading(true);
+    try {
+        const res = await fetch(`/api/projects/${id}`);
+        if (res.ok) {
+            const fetchedProject = await res.json();
+            setProject(fetchedProject);
+            updateProject(fetchedProject);
+            setEditData({ title: fetchedProject.title, description: fetchedProject.description || '' });
+        } else {
+            toast.error("Could not load project details.");
+            router.push('/dashboard');
+        }
+    } catch {
+        toast.error("A network error occurred.");
+        router.push('/dashboard');
+    } finally {
+        setIsLoading(false);
+    }
+}, [id, router, updateProject]);
+
+useEffect(() => {
+    if (!project) {
+        fetchProject();
+    } else {
+         setEditData({ title: project.title, description: project.description || '' });
+    }
+}, [project, fetchProject]);
+
+const handleEditSave = async () => {
+    if (!project) return;
+    const toastId = toast.loading('Saving...');
+    try {
+        const res = await fetch(`/api/projects/${project.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(editData),
+        });
+        if (res.ok) {
+            const updatedProject = await res.json();
+            setProject(p => p ? {...p, ...updatedProject} : undefined);
+            updateProject(updatedProject);
+            toast.success('Project updated!', { id: toastId });
+            setIsEditing(false);
+        } else { throw new Error('Failed to save'); }
+    } catch (error) { toast.error('Could not save changes.', { id: toastId }); }
+};
+
+const handleAddSubtask = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newSubtaskText.trim() || !project) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const newOptimisticSubtask: Subtask = { id: tempId, text: newSubtaskText, isCompleted: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    
+    const updater = (p: Project | undefined) => p ? { ...p, subtasks: [...p.subtasks, newOptimisticSubtask] } : undefined;
+    setProject(updater);
+    setNewSubtaskText("");
+
+    const res = await fetch('/api/subtasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: newSubtaskText, projectId: project.id }) });
+
+    if (res.ok) {
+        const createdSubtask = await res.json();
+        const finalUpdater = (p: Project | undefined) => {
+            if (!p) return undefined;
+            const finalSubtasks = p.subtasks.map(s => s.id === tempId ? createdSubtask : s);
+            updateProject({ id: p.id, subtasks: finalSubtasks });
+            return { ...p, subtasks: finalSubtasks };
+        };
+        setProject(finalUpdater);
+    } else {
+        toast.error("Failed to add subtask.");
+        setProject(p => p ? { ...p, subtasks: p.subtasks.filter(s => s.id !== tempId) } : undefined);
+    }
+};
+
+const handleToggleSubtask = async (subtask: Subtask) => {
+    if (!project) return;
+    
+    const updatedSubtasks = project.subtasks.map(s => s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s);
+    setProject(p => p ? { ...p, subtasks: updatedSubtasks } : undefined);
+    updateProject({ id: project.id, subtasks: updatedSubtasks });
+
+    const res = await fetch(`/api/subtasks/${subtask.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isCompleted: !subtask.isCompleted }) });
+    
+    if (!res.ok) {
+        toast.error("Failed to update subtask.");
+        fetchProject(); // Revert on failure
+    }
+};
+
+const handleAction = async (action: 'archive' | 'done') => {
+    if (!project || (action === 'archive' && !window.confirm("Are you sure?"))) return;
+
+    removeProject(project.id);
+    router.push('/dashboard');
+
+    if (action === 'archive') {
+        await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
+        window.dispatchEvent(new CustomEvent('projectArchiveChange'));
+        toast.success("Project archived.");
+    } else if (action === 'done') {
+        await fetch(`/api/projects/${project.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isDone: true }) });
+        toast.success("Project marked as done.");
+    }
+};
+
+const handleSubtaskGeneration = async () => {
+    if (!project) return;
+    setAiLoading(true);
+    toast.loading('Generating subtasks...', { id: 'ai-toast' });
+    try {
+        const res = await fetch(`/api/projects/${project.id}/suggest-subtasks`, { method: 'POST' });
+        if (!res.ok) throw new Error('Failed to generate subtasks.');
+        toast.success(`Subtasks added!`, { id: 'ai-toast' });
+        await fetchProject();
+    } catch {
+        toast.error('An error occurred.', { id: 'ai-toast' });
+    } finally {
+        setAiLoading(false);
+    }
+};
+
+if (isLoading) return <motion.div><ProjectDetailSkeleton /></motion.div>;
+if (!project) return null;
+
+return (
+    <motion.div layoutId={id as string}>
+        <Card className="w-full max-w-4xl mx-auto shadow-2xl bg-skin-card border-skin-border">
+            <div className="p-6 border-b border-skin-border">
+                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4 text-skin-text hover:text-skin-accent/80">
+                    <ArrowLeft size={16} />
+                    Back to All Projects
+                </Link>
+                <div className="flex justify-between items-start gap-4">
+                    {isEditing ? (
+                        <div className="flex-grow">
+                             <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="text-3xl font-bold text-skin-text bg-transparent border-b-2 border-skin-border focus:border-skin-accent focus:outline-none w-full" />
+                             <textarea value={editData.description} onChange={e => setEditData({...editData, description: e.target.value})} className="text-skin-text mt-1 bg-transparent border-b-2 border-skin-border focus:border-skin-accent focus:outline-none w-full resize-none" />
+                        </div>
+                    ) : (
+                        <div className="flex-grow">
+                            <h1 className="text-3xl font-bold text-skin-text">{project.title}</h1>
+                            <p className="text-slate-500 mt-1 text-skin-text dark:text-slate-400">{project.description || 'No description provided.'}</p>
+                        </div>
+                    )}
+                    <div className="flex-shrink-0 flex items-center gap-1 bg-skin-card/50 backdrop-blur-sm rounded-full p-1 border border-skin-border">
+                         {isEditing ? (
+                            <>
+                                <button onClick={handleEditSave} className="p-2 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-full" title="Save Changes"><Save size={20}/></button>
+                                <button onClick={() => setIsEditing(false)} className="p-2 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-full" title="Cancel"><X size={20}/></button>
+                            </>
+                         ) : (
+                            <>
+                                <button onClick={() => setIsEditing(true)} className="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 rounded-full" title="Edit Project"><Edit size={20}/></button>
+                                <button onClick={handleSubtaskGeneration} disabled={aiLoading} className="p-2 text-slate-500 hover:text-sky-600 disabled:opacity-50 dark:hover:text-sky-400 rounded-full" title="Auto-generate Subtasks">
+                                    <Sparkles className={cn("h-5 w-5", aiLoading && "animate-spin")} />
+                                </button>
+                                <button onClick={() => handleAction('done')} className="p-2 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-full" title="Mark as Done"><CheckCircle2 size={20}/></button>
+                                <button onClick={() => handleAction('archive')} className="p-2 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-full" title="Archive Project"><Archive size={20} /></button>
+                            </>
+                         )}
+                    </div>
+                </div>
+            </div>
+            <div className="p-6">
+                <h3 className="font-bold mb-4 text-skin-text">Checklist</h3>
+                <div className="space-y-3 mb-6">
+                    <AnimatePresence>
+                    {project.subtasks.map(subtask => (
+                        <motion.button
+                            layout
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                            key={subtask.id}
+                            onClick={() => handleToggleSubtask(subtask)}
+                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', subtask.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700')}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                        >
+                            {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 text-skin-text/50" />}
+                            <span className={cn("flex-grow", subtask.isCompleted && "text-slate-500 line-through dark:text-slate-400")}>{subtask.text}</span>
+                        </motion.button>
+                    ))}
+                    </AnimatePresence>
+                    {project.subtasks.length === 0 && (
+                        <p className="text-slate-500 text-center py-4 text-skin-text dark:text-slate-400">No subtasks for this project yet.</p>
+                    )}
+                </div>
+                <form onSubmit={handleAddSubtask} className="flex items-center gap-3">
+                    <input
+                        type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)}
+                        placeholder="Add a new checklist item..."
+                        className="w-full px-4 py-2 text-md border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-slate-100 dark:focus:ring-sky-400 dark:focus:border-sky-400"
+                    />
+                    <button type="submit" className="p-3 bg-skin-accent text-white rounded-md hover:brightness-110 disabled:opacity-50 transition-colors" disabled={!newSubtaskText.trim()} title="Add item">
+                        <Plus size={24} />
+                    </button>
+                </form>
+            </div>
+        </Card>
+    </motion.div>
+);
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+IGNORE_WHEN_COPYING_END
+
+}
+</file>
+
+</files>
