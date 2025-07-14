@@ -5,11 +5,12 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Project } from '@/lib/types';
 import { Plus, Archive, CheckCircle2, Sparkles, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
+
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProjectStore } from '@/lib/store';
+import Link from 'next/link';
 
 const ProjectCardSkeleton = () => (
 <div className="rounded-xl shadow-sm border p-6 bg-skin-card border-skin-border">
@@ -50,7 +51,7 @@ const [isLoading, setIsLoading] = useState(true);
 const [newProjectDraft, setNewProjectDraft] = useState<Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'isDone' | 'subtasks'> & { title: string, description: string | null } | null>(null);
 const [aiLoadingProjectId, setAiLoadingProjectId] = useState<string | null>(null);
 const titleInputRef = useRef<HTMLInputElement>(null);
-const router = useRouter();
+
 
 const fetchProjects = useCallback(async () => {
 setIsLoading(true);
@@ -107,6 +108,7 @@ try {
   toast.error('Failed to create project.');
 }
 
+
 };
 
 const markDone = async (id: string) => {
@@ -147,7 +149,7 @@ setAiLoadingProjectId(null);
 };
 
 return (
-<div>
+<motion.div>
 <div className="flex justify-between items-center mb-6">
 <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Active Projects</h2>
 <button
@@ -159,7 +161,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
 </button>
 </div>
 
-<div className="grid grid-cols-1 md:col-span-2 xl:grid-cols-3 gap-6">
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
     {isLoading ? (
         Array.from({ length: 3 }).map((_, i) => <ProjectCardSkeleton key={i} />)
     ) : (
@@ -167,11 +169,11 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
         {newProjectDraft && (
           <motion.div
             layout
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="rounded-xl shadow-xl border border-sky-300/80 bg-sky-50/50 col-span-1 md:col-span-2 xl:col-span-3 dark:bg-sky-900/50 dark:border-sky-700/80"
-            transition={{ duration: 0.4, ease: "easeInOut" }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+            className="rounded-xl shadow-xl border border-sky-300/80 bg-sky-50/50 dark:bg-sky-900/50 dark:border-sky-700/80"
+            transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
           >
             <div className="p-6">
               <input
@@ -181,7 +183,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                 onChange={(e) => setNewProjectDraft({ ...newProjectDraft, title: e.target.value })}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewProject(); if (e.key === 'Escape') setNewProjectDraft(null); }}
                 className="text-lg font-bold text-skin-text w-full bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-skin-accent transition-colors"
-                placeholder="Start with an action verb, e.g., 'Launch new website'"
+                placeholder="Start with an action verb..."
               />
               <textarea
                 value={newProjectDraft.description ?? ''}
@@ -203,47 +205,44 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
           const isCompleted = totalCount > 0 && doneCount === totalCount;
           
           return (
-            <motion.div
-              layout
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
-              key={p.id}
-              onClick={() => router.push(`/dashboard/project/${p.id}`)}
-              whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className={cn(
-                'cursor-pointer rounded-xl shadow-md border bg-skin-card border-skin-border flex flex-col',
-                isCompleted && 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/50 dark:border-emerald-700'
-              )}
-            >
-              <div className="p-6 flex-grow">
-                <h3 className="text-lg font-bold mb-1 text-skin-text flex-grow">{p.title}</h3>
-                <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
-                
-                 <div className="flex-shrink-0 flex items-center absolute top-4 right-4 bg-skin-card/50 backdrop-blur-sm rounded-full p-1">
-                     <button onClick={(e) => { e.stopPropagation(); handleSubtaskGeneration(p); }} disabled={aiLoadingProjectId === p.id} className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 dark:hover:text-sky-400" title="Auto-generate Subtasks"><Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-spin")} /></button>
-                    <button onClick={(e) => { e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors dark:hover:text-emerald-400" title="Mark as Done"><CheckCircle2 className="h-5 w-5" /></button>
-                    <button onClick={(e) => { e.stopPropagation(); archiveProject(p.id); }} className="p-1 text-slate-400 hover:text-red-500 transition-colors dark:hover:text-red-400" title="Archive Project"><Archive className="h-5 w-5" /></button>
-                  </div>
-              </div>
-                
-              {p.subtasks.length > 0 && (
-                <div className="mt-auto p-6 pt-4 border-t border-skin-border">
-                  <div className="flex justify-between items-center text-sm text-slate-500 mb-2 dark:text-slate-400">
-                    <span>Progress</span>
-                    <span>{doneCount} / {totalCount}</span>
-                  </div>
-                  <ProgressBar value={doneCount} max={totalCount} />
+            <Link key={p.id} href={`/dashboard/project/${p.id}`} className="block">
+              <motion.div
+                layoutId={p.id}
+                whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className={cn(
+                  'cursor-pointer rounded-xl shadow-md border bg-skin-card border-skin-border flex flex-col h-full',
+                  isCompleted && 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/50 dark:border-emerald-700'
+                )}
+              >
+                <div className="p-6 flex-grow flex flex-col">
+                  <h3 className="text-lg font-bold mb-1 text-skin-text flex-grow">{p.title}</h3>
+                  <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
+                  
+                   <div className="flex-shrink-0 flex items-center absolute top-4 right-4 bg-skin-card/50 backdrop-blur-sm rounded-full p-1">
+                       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSubtaskGeneration(p); }} disabled={aiLoadingProjectId === p.id} className="p-1 text-slate-400 hover:text-sky-500 transition-colors disabled:text-slate-300 dark:hover:text-sky-400" title="Auto-generate Subtasks"><Sparkles className={cn("h-5 w-5", aiLoadingProjectId === p.id && "animate-spin")} /></button>
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); markDone(p.id); }} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors dark:hover:text-emerald-400" title="Mark as Done"><CheckCircle2 className="h-5 w-5" /></button>
+                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); archiveProject(p.id); }} className="p-1 text-slate-400 hover:text-red-500 transition-colors dark:hover:text-red-400" title="Archive Project"><Archive className="h-5 w-5" /></button>
+                    </div>
                 </div>
-              )}
-            </motion.div>
+                  
+                {p.subtasks.length > 0 && (
+                  <div className="mt-auto p-6 pt-4 border-t border-skin-border">
+                    <div className="flex justify-between items-center text-sm text-slate-500 mb-2 dark:text-slate-400">
+                      <span>Progress</span>
+                      <span>{doneCount} / {totalCount}</span>
+                    </div>
+                    <ProgressBar value={doneCount} max={totalCount} />
+                  </div>
+                )}
+              </motion.div>
+            </Link>
           );
         })}
          {projects.length === 0 && !newProjectDraft && <EmptyState onClickNew={handleStartNewProject} />}
       </AnimatePresence>
     )}
   </div>
-</div>
+</motion.div>
 );
 }
