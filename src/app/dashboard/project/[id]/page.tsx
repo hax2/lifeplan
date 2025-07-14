@@ -18,6 +18,7 @@ import {
   useSensors,
   PointerSensor,
 } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
 import {
   SortableContext,
   useSortable,
@@ -224,7 +225,7 @@ const handleSubtaskGeneration = async () => {
 
 const sensors = useSensors(useSensor(PointerSensor));
 
-const handleSubtaskDragEnd = async (event: any) => {
+const handleSubtaskDragEnd = (event: DragEndEvent) => {
   const { active, over } = event;
   if (!over || active.id === over.id || !project) return;
   const oldIndex = project.subtasks.findIndex(s => s.id === active.id);

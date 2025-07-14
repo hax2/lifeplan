@@ -1,7 +1,6 @@
 'use client'
 import { Project } from "@/lib/types";
 import { RotateCcw, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Card } from "../ui/Card";
 import useSWR from 'swr';
