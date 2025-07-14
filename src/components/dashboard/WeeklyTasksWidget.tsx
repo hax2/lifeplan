@@ -34,7 +34,6 @@ export function useWeeklyTasks() {
 export const WeeklyTasksWidget = () => {
   const { data: tasks = [], isLoading, mutate } = useWeeklyTasks();
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
@@ -55,54 +54,54 @@ export const WeeklyTasksWidget = () => {
   }, []);
 
   // -------- handlers --------------------------------------------------------
-  const handleToggle = async (task: WeeklyTask) => {
-    // optimistic UI: flag it completed
-    setCompletedTaskIds(prev => new Set(prev).add(task.id));
+  // const handleToggle = async (task: WeeklyTask) => {
+  //   // optimistic UI: flag it completed
+  //   setCompletedTaskIds(prev => new Set(prev).add(task.id));
 
-    const res = await fetch('/api/weekly-tasks/completion', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: task.id }),
-    });
+  //   const res = await fetch('/api/weekly-tasks/completion', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ taskId: task.id }),
+  //   });
 
-    if (res.ok) {
-      toast.success('Weekly task marked complete!');
-      mutate(prev => (prev ?? []).map(t =>
-        t.id === task.id
-          ? { ...t, lastCompletedAt: new Date().toISOString() }
-          : t
-      ));
-    } else {
-      toast.error('Failed to mark task complete.');
-    }
+  //   if (res.ok) {
+  //     toast.success('Weekly task marked complete!');
+  //     mutate(prev => (prev ?? []).map(t =>
+  //       t.id === task.id
+  //         ? { ...t, lastCompletedAt: new Date().toISOString() }
+  //         : t
+  //     ));
+  //   } else {
+  //     toast.error('Failed to mark task complete.');
+  //   }
 
-    // clear optimistic flag either way
-    setCompletedTaskIds(prev => {
-      const next = new Set(prev);
-      next.delete(task.id);
-      return next;
-    });
-  };
+  //   // clear optimistic flag either way
+  //   setCompletedTaskIds(prev => {
+  //     const next = new Set(prev);
+  //     next.delete(task.id);
+  //     return next;
+  //   });
+  // };
 
-  const handleArchiveTask = async (id: string) => {
-    if (!window.confirm("Are you sure you want to archive this weekly task?")) return;
-    try {
-      const res = await fetch('/api/weekly-tasks/archive', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      if (res.ok) {
-        mutate(tasks.filter(task => task.id !== id));
-        toast.success("Weekly task archived!");
-      } else {
-        toast.error("Failed to archive task.");
-      }
-    } catch (error) {
-      console.error("Error archiving weekly task:", error);
-      toast.error("An error occurred while archiving.");
-    }
-  };
+  // const handleArchiveTask = async (id: string) => {
+  //   if (!window.confirm("Are you sure you want to archive this weekly task?")) return;
+  //   try {
+  //     const res = await fetch('/api/weekly-tasks/archive', {
+  //       method: 'PATCH',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ id }),
+  //     });
+  //     if (res.ok) {
+  //       mutate(tasks.filter(task => task.id !== id));
+  //       toast.success("Weekly task archived!");
+  //     } else {
+  //       toast.error("Failed to archive task.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error archiving weekly task:", error);
+  //     toast.error("An error occurred while archiving.");
+  //   }
+  // };
 
   // -------- render ----------------------------------------------------------
   return (
@@ -192,22 +191,22 @@ export const WeeklyTasksWidget = () => {
                     )}
                     onClick={e => {
                       if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input[type="checkbox"]')) return;
-                      setCompletedTaskIds(prev => new Set(prev).add(task.id));
+                      // setCompletedTaskIds(prev => new Set(prev).add(task.id)); // This line was removed
                       mutate(prev => (prev ?? []).map(t => t.id === task.id ? { ...t, lastCompletedAt: isCompleted ? null : new Date().toISOString() } : t), false);
-                      fetch('/api/weekly-tasks/completion', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ taskId: task.id }),
-                      }).then(res => {
-                        if (!res.ok) {
-                          mutate();
-                        }
-                        setCompletedTaskIds(prev => {
-                          const next = new Set(prev);
-                          next.delete(task.id);
-                          return next;
-                        });
-                      });
+                      // fetch('/api/weekly-tasks/completion', { // This line was removed
+                      //   method: 'POST',
+                      //   headers: { 'Content-Type': 'application/json' },
+                      //   body: JSON.stringify({ taskId: task.id }),
+                      // }).then(res => { // This line was removed
+                      //   if (!res.ok) { // This line was removed
+                      //     mutate(); // This line was removed
+                      //   } // This line was removed
+                      //   setCompletedTaskIds(prev => { // This line was removed
+                      //     const next = new Set(prev); // This line was removed
+                      //     next.delete(task.id); // This line was removed
+                      //     return next; // This line was removed
+                      //   }); // This line was removed
+                      // }); // This line was removed
                     }}
                     onDoubleClick={() => {
                       setRenamingId(task.id);
@@ -218,22 +217,22 @@ export const WeeklyTasksWidget = () => {
                       type="checkbox"
                       checked={isCompleted}
                       onChange={() => {
-                        setCompletedTaskIds(prev => new Set(prev).add(task.id));
+                        // setCompletedTaskIds(prev => new Set(prev).add(task.id)); // This line was removed
                         mutate(prev => (prev ?? []).map(t => t.id === task.id ? { ...t, lastCompletedAt: isCompleted ? null : new Date().toISOString() } : t), false);
-                        fetch('/api/weekly-tasks/completion', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ taskId: task.id }),
-                        }).then(res => {
-                          if (!res.ok) {
-                            mutate();
-                          }
-                          setCompletedTaskIds(prev => {
-                            const next = new Set(prev);
-                            next.delete(task.id);
-                            return next;
-                          });
-                        });
+                        // fetch('/api/weekly-tasks/completion', { // This line was removed
+                        //   method: 'POST',
+                        //   headers: { 'Content-Type': 'application/json' },
+                        //   body: JSON.stringify({ taskId: task.id }),
+                        // }).then(res => { // This line was removed
+                        //   if (!res.ok) { // This line was removed
+                        //     mutate(); // This line was removed
+                        //   } // This line was removed
+                        //   setCompletedTaskIds(prev => { // This line was removed
+                        //     const next = new Set(prev); // This line was removed
+                        //     next.delete(task.id); // This line was removed
+                        //     return next; // This line was removed
+                        //   }); // This line was removed
+                        // }); // This line was removed
                       }}
                       className="h-5 w-5 accent-skin-accent cursor-pointer"
                       onClick={e => e.stopPropagation()}
