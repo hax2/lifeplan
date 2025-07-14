@@ -5,7 +5,6 @@ import { DailyTasksWidget } from "./DailyTasksWidget";
 import { WeeklyTasksWidget } from "./WeeklyTasksWidget";
 import { LogOut, Sun, Moon, X } from 'lucide-react';
 import { signOut } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
 import { useDarkMode } from '@/components/ui/DarkModeProvider';
 import { Button } from '@/components/ui/Button';
 
