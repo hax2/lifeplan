@@ -25,6 +25,8 @@ export const DailyTasksWidget = () => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const fetchTasks = async () => {
     setIsLoading(true);
@@ -160,25 +162,69 @@ export const DailyTasksWidget = () => {
                   exit={{ opacity: 0, x: -20 }}
                   key={task.id}
                   className={cn(
-                    'flex gap-3 rounded-lg p-3 transition-[background,color] duration-150',
+                    'group flex gap-3 rounded-lg p-3 transition-[background,color] duration-150 cursor-pointer',
                     task.isCompleted
                       ? 'bg-emerald-50 dark:bg-emerald-900/40'
                       : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
                   )}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
+                  onClick={e => {
+                    // Only toggle if not clicking archive or checkbox
+                    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input[type="checkbox"]')) return;
+                    handleToggle(task);
+                  }}
+                  onDoubleClick={() => {
+                    setRenamingId(task.id);
+                    setRenameValue(task.title);
+                  }}
                 >
                   <input
                     type="checkbox"
                     checked={task.isCompleted}
                     onChange={() => handleToggle(task)}
-                    className="h-5 w-5 accent-skin-accent"
+                    className="h-5 w-5 accent-skin-accent cursor-pointer"
+                    onClick={e => e.stopPropagation()}
                   />
-                  <span className={cn("flex-1 break-words leading-snug", task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
-                    {task.title}
-                  </span>
+                  {renamingId === task.id ? (
+                    <input
+                      className="flex-1 break-words leading-snug bg-transparent border-b-2 border-skin-border focus:border-skin-accent outline-none text-skin-text"
+                      value={renameValue}
+                      autoFocus
+                      onChange={e => setRenameValue(e.target.value)}
+                      onBlur={async () => {
+                        if (renameValue.trim() && renameValue !== task.title) {
+                          const res = await fetch(`/api/daily-tasks/${task.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ title: renameValue }),
+                          });
+                          if (res.ok) {
+                            setTasks(prev => prev.map(t => t.id === task.id ? { ...t, title: renameValue } : t));
+                            toast.success('Task renamed!');
+                          } else {
+                            toast.error('Failed to rename task.');
+                          }
+                        }
+                        setRenamingId(null);
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          (e.target as HTMLInputElement).blur();
+                        } else if (e.key === 'Escape') {
+                          setRenamingId(null);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span className={cn("flex-1 break-words leading-snug", task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}
+                    >
+                      {task.title}
+                    </span>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleArchiveTask(task.id);
