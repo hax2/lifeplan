@@ -176,7 +176,7 @@ return (
     <motion.div layout="position" layoutId={id as string}>
         <Card className="w-full max-w-4xl mx-auto shadow-2xl bg-skin-card border-skin-border">
             <div className="p-6 border-b border-skin-border">
-                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4 text-skin-text hover:text-skin-accent/80">
+                <Link href="/dashboard" className="flex items-center gap-2 text-sm text-skin-text/60 hover:text-skin-accent/80 mb-4">
                     <ArrowLeft size={16} />
                     Back to All Projects
                 </Link>
@@ -189,7 +189,7 @@ return (
                     ) : (
                         <div className="flex-grow">
                             <h1 className="text-3xl font-bold text-skin-text">{project.title}</h1>
-                            <p className="text-sm text-slate-500 mt-1 text-skin-text dark:text-slate-400">{project.description || 'No description provided.'}</p>
+                            <p className="text-skin-text/60 text-sm mt-1">{project.description || 'No description provided.'}</p>
                         </div>
                     )}
                     <div className="flex-shrink-0 flex items-center gap-1 bg-skin-card/50 backdrop-blur-sm rounded-full p-1 border border-skin-border">
@@ -232,14 +232,14 @@ return (
                     ))}
                     </AnimatePresence>
                     {(project.subtasks || []).length === 0 && (
-                        <p className="text-slate-500 text-center py-4 text-skin-text dark:text-slate-400">No subtasks for this project yet.</p>
+                        <p className="text-skin-text/60 text-center py-4">No subtasks for this project yet.</p>
                     )}
                 </div>
                 <form onSubmit={handleAddSubtask} className="flex items-center gap-3">
                     <input
                         type="text" value={newSubtaskText} onChange={(e) => setNewSubtaskText(e.target.value)}
                         placeholder="Add a new checklist item..."
-                        className="w-full px-4 py-2 text-md border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-zinc-800 dark:border-zinc-700 dark:text-slate-100 dark:focus:ring-sky-400 dark:focus:border-sky-400"
+                        className="w-full px-4 py-2 text-md border border-skin-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-skin-accent focus:border-skin-accent bg-skin-card text-skin-text"
                     />
                     <button type="submit" className="p-3 bg-skin-accent text-white rounded-md hover:brightness-110 disabled:opacity-50 transition-colors" disabled={!newSubtaskText.trim()} title="Add item">
                         <Plus size={24} />

@@ -18,8 +18,8 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
     cn(
       "block font-medium rounded-lg px-4 py-2",
       pathname === href 
-        ? "bg-sky-100 text-sky-700 dark:bg-sky-700 dark:text-sky-100" 
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-slate-50"
+        ? "bg-skin-accent/10 text-skin-accent" 
+        : "text-skin-text/70 hover:bg-skin-border/20 hover:text-skin-text"
     );
 
   return (
@@ -37,10 +37,10 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
           </Button>
         </div>
       )}
-      <h1 className="text-2xl font-bold text-slate-900 mb-2 dark:text-white">
+      <h1 className="text-2xl font-bold text-skin-text mb-2">
         Samer&apos;s Dashboard
       </h1>
-      <p className="text-slate-500 mb-4 text-sm dark:text-slate-400">
+      <p className="text-skin-text/60 mb-4 text-sm">
         {new Intl.DateTimeFormat('en-US', {
           weekday: 'long',
           month: 'short',
@@ -67,7 +67,7 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
 
       <button
         onClick={toggleDarkMode}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-50"
+        className="flex items-center gap-2 text-sm text-skin-text/70 hover:text-skin-text"
       >
         {darkMode ? <Sun size={16} /> : <Moon size={16} />}
         {darkMode ? 'Light Mode' : 'Dark Mode'}
@@ -75,7 +75,7 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
 
       <button
         onClick={() => signOut({ callbackUrl: '/login' })}
-        className="mt-4 flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-50"
+        className="mt-4 flex items-center gap-2 text-sm text-skin-text/70 hover:text-skin-text"
       >
         <LogOut size={16} />
         Sign Out

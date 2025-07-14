@@ -13,6 +13,8 @@
  
  body {
    font-family: var(--font-sans);
+   background-color: var(--c-bg);
+   color: var(--c-text);
  }
 
 .dark {
@@ -22,4 +24,9 @@
   --c-border : #3f3f46;  /* zinc-700 */
   --c-text   : #f1f5f9;
   --c-accent : #60a5fa;  /* tailwind sky-400 */
+}
+
+/* Ensure all elements use CSS variables */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }

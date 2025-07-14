@@ -133,7 +133,7 @@ export default function ArchivePage() {
   if (isLoading) {
     return (
       <div className="text-center py-16 bg-skin-card rounded-xl border border-dashed border-skin-border">
-        <h3 className="text-xl font-medium text-slate-800 dark:text-slate-200">Loading Archived Items...</h3>
+        <h3 className="text-xl font-medium text-skin-text">Loading Archived Items...</h3>
       </div>
     );
   }
@@ -141,7 +141,7 @@ export default function ArchivePage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Archive</h1>
+        <h1 className="text-3xl font-bold text-skin-text">Archive</h1>
         <button
           onClick={() => router.push('/dashboard')}
           className="flex items-center gap-2 bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300 transition-colors shadow-sm bg-skin-card text-skin-text hover:bg-skin-card"
@@ -151,10 +151,10 @@ export default function ArchivePage() {
       </div>
 
       {/* Archived Projects */}
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Projects</h2>
+      <h2 className="text-2xl font-bold text-skin-text mb-4">Projects</h2>
       {archivedProjects.length === 0 ? (
         <div className="text-center py-8 mb-8 bg-skin-card rounded-xl border border-dashed border-skin-border">
-            <h3 className="text-xl font-medium text-slate-800 dark:text-slate-200">No Archived Projects</h3>
+            <h3 className="text-xl font-medium text-skin-text">No Archived Projects</h3>
             <p className="text-slate-500 mt-2 dark:text-slate-400">Projects you archive will appear here.</p>
         </div>
       ) : (
@@ -177,10 +177,10 @@ export default function ArchivePage() {
       )}
 
       {/* Archived Daily Tasks */}
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Daily Tasks</h2>
+      <h2 className="text-2xl font-bold text-skin-text mb-4">Daily Tasks</h2>
       {archivedDailyTasks.length === 0 ? (
         <div className="text-center py-8 mb-8 bg-skin-card rounded-xl border border-dashed border-skin-border">
-            <h3 className="text-xl font-medium text-slate-800 dark:text-slate-200">No Archived Daily Tasks</h3>
+            <h3 className="text-xl font-medium text-skin-text">No Archived Daily Tasks</h3>
             <p className="text-slate-500 mt-2 dark:text-slate-400">Daily tasks you archive will appear here.</p>
         </div>
       ) : (
@@ -202,10 +202,10 @@ export default function ArchivePage() {
       )}
 
       {/* Archived Weekly Tasks */}
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Weekly Tasks</h2>
+      <h2 className="text-2xl font-bold text-skin-text mb-4">Weekly Tasks</h2>
       {archivedWeeklyTasks.length === 0 ? (
         <div className="text-center py-8 bg-skin-card rounded-xl border border-dashed border-skin-border">
-            <h3 className="text-xl font-medium text-slate-800 dark:text-slate-200">No Archived Weekly Tasks</h3>
+            <h3 className="text-xl font-medium text-skin-text">No Archived Weekly Tasks</h3>
             <p className="text-slate-500 mt-2 dark:text-slate-400">Weekly tasks you archive will appear here.</p>
         </div>
       ) : (

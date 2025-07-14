@@ -154,12 +154,12 @@ export const DailyTasksWidget = () => {
         <input
           type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
           placeholder="Add a daily habit..."
-          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-slate-200 focus:outline-none focus:border-sky-500 transition-colors dark:bg-zinc-800 dark:border-zinc-600 dark:text-slate-100 dark:focus:border-sky-400"
+          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-skin-border focus:outline-none focus:border-skin-accent transition-colors text-skin-text"
         />
-        <button type="submit" className="text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300" title="Add habit"><Plus size={20} /></button>
+        <button type="submit" className="text-skin-accent hover:text-skin-accent/80" title="Add habit"><Plus size={20} /></button>
       </form>
       <div className="mt-6">
-        <p className='text-sm text-slate-500 mb-2 text-center dark:text-slate-400'>{completedCount} of {tasks.length} tasks completed</p>
+        <p className='text-sm text-skin-text/60 mb-2 text-center'>{completedCount} of {tasks.length} tasks completed</p>
         <ProgressBar value={completedCount} max={tasks.length === 0 ? 1 : tasks.length} />
       </div>
     </Card>

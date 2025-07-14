@@ -154,7 +154,7 @@ export const WeeklyTasksWidget = () => {
                     />
                     <div className="flex min-w-0 flex-grow flex-col">
                       <span className="break-words leading-snug">{task.title}</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                      <span className="text-xs text-skin-text/60">
                         Last: {formatDateRelativeToNow(task.lastCompletedAt)}
                       </span>
                     </div>
@@ -184,12 +184,12 @@ export const WeeklyTasksWidget = () => {
             value={newTaskTitle}
             onChange={e => setNewTaskTitle(e.target.value)}
             placeholder="Add a weekly habit..."
-            className="flex-grow border-b-2 border-slate-200 bg-transparent p-1 text-sm transition-colors focus:border-sky-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-slate-100 dark:focus:border-sky-400"
+            className="flex-grow border-b-2 border-skin-border bg-transparent p-1 text-sm transition-colors focus:border-skin-accent focus:outline-none text-skin-text"
           />
           <button
             type="submit"
             title="Add habit"
-            className="text-sky-500 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300"
+            className="text-skin-accent hover:text-skin-accent/80"
           >
             <Plus size={20} />
           </button>

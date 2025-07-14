@@ -31,8 +31,8 @@ const ProjectCardSkeleton = () => (
 const EmptyState = ({ onClickNew }: { onClickNew: () => void }) => (
 <div className="col-span-1 md:col-span-2 xl:col-span-3 text-center py-16 bg-skin-card rounded-xl border border-dashed border-skin-border">
 <FileText className="mx-auto h-12 w-12 text-slate-400" />
-<h3 className="mt-4 text-xl font-medium text-slate-800 dark:text-slate-200">No Active Projects</h3>
-<p className="text-slate-500 mt-2 dark:text-slate-400">Get started by creating a new project.</p>
+<h3 className="mt-4 text-xl font-medium text-skin-text">No Active Projects</h3>
+<p className="text-skin-text/60 mt-2">Get started by creating a new project.</p>
 <div className="mt-6">
 <button
 onClick={onClickNew}
@@ -161,7 +161,7 @@ setAiLoadingProjectId(null);
 return (
 <motion.div layout="position">
 <div className="flex justify-between items-center mb-6">
-<h2 className="text-3xl font-bold text-slate-900 dark:text-white">Active Projects</h2>
+<h2 className="text-3xl font-bold text-skin-text">Active Projects</h2>
 <button
 onClick={handleStartNewProject}
 className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 py-2 rounded-lg hover:brightness-110 transition-colors shadow-sm"
@@ -203,7 +203,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                 placeholder="Optional description..."
               ></textarea>
               <div className="mt-4 flex justify-end space-x-2">
-                <button onClick={() => { setDraft({ title: '', description: '' }); setShowDraft(false); }} className="px-3 py-1 border rounded-md shadow-sm text-sm font-medium bg-skin-card text-skin-text border-skin-border hover:bg-slate-50 dark:hover:bg-zinc-800">Cancel</button>
+                <button onClick={() => { setDraft({ title: '', description: '' }); setShowDraft(false); }} className="px-3 py-1 border rounded-md shadow-sm text-sm font-medium bg-skin-card text-skin-text border-skin-border hover:bg-skin-border/20">Cancel</button>
                 <button onClick={handleSaveNewProject} className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-skin-accent hover:brightness-110">Create</button>
               </div>
             </div>
@@ -239,7 +239,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                         </div>
                     </div>
 
-                  <p className="text-slate-500 text-sm mb-4 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
+                  <p className="text-skin-text/60 text-sm mb-4 h-10 overflow-hidden">{p.description || 'No description.'}</p>
                   
                     <div className="space-y-3 mt-2 mb-4 flex-grow">
                     {uncompletedSubtasks.length > 0 ? (
@@ -269,7 +269,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                   
                 {subtasks.length > 0 && (
                   <div className="mt-auto p-6 pt-4 border-t border-skin-border/80">
-                    <div className="flex justify-between items-center text-sm text-slate-500 mb-2 dark:text-slate-400">
+                    <div className="flex justify-between items-center text-sm text-skin-text/60 mb-2">
                       <span>Progress</span>
                       <span>{doneCount} / {totalCount}</span>
                     </div>
