@@ -30,3 +30,20 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ message: 'Failed to archive daily task' }, { status: 500 });
   }
 }
+
+export async function GET(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const archivedTasks = await prisma.dailyTaskTemplate.findMany({
+    where: {
+      userId: session.user.id,
+      isArchived: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  return NextResponse.json(archivedTasks);
+}

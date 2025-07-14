@@ -15,7 +15,7 @@ export default function ArchivePage() {
     { refreshInterval: 0 }         // no polling
   );
 
-  const { data: archivedDailyTasks = [], isLoading: isLoadingDailyTasks, mutate: mutateDailyTasks } = useSWR<DailyTask[]>('/api/daily-tasks?isArchived=true',
+  const { data: archivedDailyTasks = [], isLoading: isLoadingDailyTasks, mutate: mutateDailyTasks } = useSWR<DailyTask[]>('/api/daily-tasks/archive',
     url => fetch(url).then(r => r.json()).then(data => Array.isArray(data) ? data : []),
     { refreshInterval: 0 }
   );
