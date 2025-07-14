@@ -9,11 +9,12 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog } from '../ui/Dialog';
+import { Skeleton } from '../ui/Skeleton';
 
-const Skeleton = () => (
+const SkeletonList = () => (
   <div className="space-y-2">
     {Array.from({ length: 4 }).map((_, i) => (
-      <div key={i} className="h-10 bg-skin-border/50 rounded-lg animate-pulse" />
+      <Skeleton key={i} className="h-10 w-full" />
     ))}
   </div>
 );
@@ -150,7 +151,7 @@ export const DailyTasksWidget = () => {
       </div>
       <div className="space-y-3 max-h-[350px] md:max-h-[400px] overflow-y-auto pr-1">
         {isLoading ? (
-          <Skeleton />
+          <SkeletonList />
         ) : (
           <>
             <AnimatePresence>

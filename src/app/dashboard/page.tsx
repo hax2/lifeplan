@@ -11,21 +11,22 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProjectStore } from '@/lib/store';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 const ProjectCardSkeleton = () => (
-<div className="rounded-xl shadow-sm border p-6 bg-skin-card border-skin-border min-h-[280px]">
-<div className="animate-pulse flex flex-col h-full">
-<div className="h-5 bg-skin-border/50 rounded w-3/4 mb-2"></div>
-<div className="h-4 bg-skin-border/50 rounded w-1/2 mb-4"></div>
-<div className="space-y-2 flex-grow">
-<div className="h-4 bg-skin-border/50 rounded"></div>
-<div className="h-4 bg-skin-border/50 rounded w-5/6"></div>
-</div>
-<div className="mt-4">
-<div className="h-2 bg-skin-border/50 rounded-full"></div>
-</div>
-</div>
-</div>
+  <div className="rounded-xl shadow-sm border p-6 bg-skin-card border-skin-border min-h-[280px]">
+    <div className="animate-pulse flex flex-col h-full">
+      <Skeleton className="h-5 w-3/4 mb-2" />
+      <Skeleton className="h-4 w-1/2 mb-4" />
+      <div className="space-y-2 flex-grow">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+      </div>
+      <div className="mt-4">
+        <Skeleton className="h-2 w-full rounded-full" />
+      </div>
+    </div>
+  </div>
 );
 
 const EmptyState = ({ onClickNew }: { onClickNew: () => void }) => (
@@ -139,23 +140,19 @@ toast.success('Project archived.');
 };
 
 const handleSubtaskGeneration = async (project: Project) => {
-setAiLoadingProjectId(project.id);
-toast.loading('Generating subtasks...', { id: 'ai-toast' });
-try {
-const res = await fetch(`/api/projects/${project.id}/suggest-subtasks`, { method: 'POST' });
-if (!res.ok) throw new Error('Failed to generate subtasks.');
-const { count } = await res.json();
-const pRes = await fetch(`/api/projects/${project.id}`);
-if (pRes.ok) {
-const updated = await pRes.json();
-updateProject(updated);
-toast.success(`${count} subtasks added!`, { id: 'ai-toast' });
-}
-} catch {
-toast.error('An error occurred.', { id: 'ai-toast' });
-} finally {
-setAiLoadingProjectId(null);
-}
+  setAiLoadingProjectId(project.id);
+  toast.loading('Generating subtasks...', { id: 'ai-toast' });
+  try {
+    const res = await fetch(`/api/projects/${project.id}/suggest-subtasks`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to generate subtasks.');
+    const { newSubs } = await res.json();
+    updateProject({ ...project, subtasks: [...(project.subtasks || []), ...newSubs] });
+    toast.success(`${newSubs.length} subtasks added!`, { id: 'ai-toast' });
+  } catch {
+    toast.error('An error occurred.', { id: 'ai-toast' });
+  } finally {
+    setAiLoadingProjectId(null);
+  }
 };
 
 return (
@@ -171,7 +168,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
 </button>
 </div>
 
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<div className="grid gap-6 xl:grid-cols-3 sm:grid-cols-2 auto-rows-[1fr]">
     {isLoading ? (
         Array.from({ length: 3 }).map((_, i) => <ProjectCardSkeleton key={i} />)
     ) : (

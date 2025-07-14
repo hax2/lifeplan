@@ -11,6 +11,20 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "@/lib/store";
+import {
+  DndContext,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const ProjectDetailSkeleton = () => (
 <Card className="w-full max-w-4xl mx-auto shadow-2xl bg-skin-card border-skin-border">
@@ -29,6 +43,45 @@ const ProjectDetailSkeleton = () => (
 </div>
 </Card>
 );
+
+// SortableSubtask component for dnd-kit
+function SortableSubtask({ subtask, onClick, isCompleted }: { subtask: Subtask; onClick: () => void; isCompleted: boolean }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: subtask.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <motion.button
+      ref={setNodeRef}
+      style={style}
+      layout="position"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+      key={subtask.id}
+      onClick={onClick}
+      className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-[background,color] duration-150', isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700')}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+      {...attributes}
+      {...listeners}
+    >
+      {isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 text-skin-text/50" />}
+      <span className={cn("flex-grow", isCompleted && "text-slate-500 line-through dark:text-slate-400")}>{subtask.text}</span>
+    </motion.button>
+  );
+}
 
 export default function ProjectDetailPage() {
 const { id } = useParams();
@@ -169,6 +222,21 @@ const handleSubtaskGeneration = async () => {
     }
 };
 
+const sensors = useSensors(useSensor(PointerSensor));
+
+const handleSubtaskDragEnd = async (event: any) => {
+  const { active, over } = event;
+  if (!over || active.id === over.id || !project) return;
+  const oldIndex = project.subtasks.findIndex(s => s.id === active.id);
+  const newIndex = project.subtasks.findIndex(s => s.id === over.id);
+  if (oldIndex === -1 || newIndex === -1) return;
+  const newSubtasks = arrayMove(project.subtasks, oldIndex, newIndex);
+  setProject(p => p ? { ...p, subtasks: newSubtasks } : undefined);
+  updateProject({ ...project, subtasks: newSubtasks });
+  // TODO: Persist order to backend
+  // await fetch('/api/subtasks/reorder', { method: 'POST', body: JSON.stringify({ projectId: project.id, subtaskIds: newSubtasks.map(s => s.id) }) });
+};
+
 if (isLoading) return <motion.div layout="position"><ProjectDetailSkeleton /></motion.div>;
 if (!project) return null;
 
@@ -214,23 +282,27 @@ return (
             <div className="p-6">
                 <h3 className="text-xl font-bold mb-4 text-skin-text">Checklist</h3>
                 <div className="space-y-3 mb-6">
-                    <AnimatePresence>
-                    {(project.subtasks || []).map(subtask => (
-                        <motion.button
-                            layout="position"
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-                            key={subtask.id}
-                            onClick={() => handleToggleSubtask(subtask)}
-                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-[background,color] duration-150', subtask.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700')}
-                            transition={{ duration: 0.2, ease: "easeInOut" }}
-                        >
-                            {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 text-skin-text/50" />}
-                            <span className={cn("flex-grow", subtask.isCompleted && "text-slate-500 line-through dark:text-slate-400")}>{subtask.text}</span>
-                        </motion.button>
-                    ))}
-                    </AnimatePresence>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleSubtaskDragEnd}
+                    >
+                      <SortableContext
+                        items={project.subtasks.map(s => s.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <AnimatePresence>
+                          {(project.subtasks || []).map(subtask => (
+                            <SortableSubtask
+                              key={subtask.id}
+                              subtask={subtask}
+                              onClick={() => handleToggleSubtask(subtask)}
+                              isCompleted={subtask.isCompleted}
+                            />
+                          ))}
+                        </AnimatePresence>
+                      </SortableContext>
+                    </DndContext>
                     {(project.subtasks || []).length === 0 && (
                         <p className="text-skin-text/60 text-center py-4">No subtasks for this project yet.</p>
                     )}

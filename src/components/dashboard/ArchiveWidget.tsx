@@ -4,25 +4,13 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Card } from "../ui/Card";
+import useSWR from 'swr';
 
 export const ArchiveWidget = ({ onProjectRestored }: { onProjectRestored: () => void }) => {
-    const [archived, setArchived] = useState<Project[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const fetchArchived = async () => {
-        setIsLoading(true);
-        const res = await fetch('/api/archive');
-        if (res.ok) setArchived(await res.json());
-        setIsLoading(false);
-    };
-
-    useEffect(() => {
-        // We add this interval to periodically check for newly archived projects
-        // This makes the UI feel more alive
-        const interval = setInterval(fetchArchived, 5000); // Refresh every 5 seconds
-        fetchArchived(); // Initial fetch
-        return () => clearInterval(interval); // Cleanup on component unmount
-    }, []);
+    const { data: archived = [], isLoading, mutate } = useSWR<Project[]>(
+        '/api/archive',
+        (url: string) => fetch(url).then(r => r.json())
+    );
 
     const handleRestore = async (id: string) => {
         const res = await fetch('/api/archive/restore', {
@@ -32,7 +20,7 @@ export const ArchiveWidget = ({ onProjectRestored }: { onProjectRestored: () => 
         });
         if (res.ok) {
             toast.success("Project restored!");
-            setArchived(archived.filter(p => p.id !== id));
+            await mutate();
             onProjectRestored();
         } else {
             toast.error("Failed to restore project.");
@@ -49,7 +37,7 @@ export const ArchiveWidget = ({ onProjectRestored }: { onProjectRestored: () => 
         });
         if (res.ok) {
             toast.success("Project permanently deleted.");
-            setArchived(archived.filter(p => p.id !== id));
+            await mutate();
         } else {
             toast.error("Failed to delete project.");
         }

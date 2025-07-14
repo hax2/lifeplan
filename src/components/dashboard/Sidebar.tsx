@@ -31,7 +31,7 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="p-2"
+            className="btn-icon"
           >
             <X size={20} />
           </Button>
