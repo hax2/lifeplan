@@ -78,26 +78,6 @@ export const WeeklyTasksWidget = () => {
     });
   };
 
-  const handleAddTask = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!newTaskTitle.trim()) return;
-
-    const res = await fetch('/api/weekly-tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTaskTitle }),
-    });
-
-    if (res.ok) {
-      const newTask = await res.json();      // <- await **outside** setState
-      setTasks(prev => [...prev, newTask]);  // <- synchronous updater
-      setNewTaskTitle('');
-      toast.success('Weekly task added!');
-    } else {
-      toast.error('Failed to add task.');
-    }
-  };
-
   const handleArchiveTask = async (id: string) => {
     if (!window.confirm("Are you sure you want to archive this weekly task?")) return;
     try {

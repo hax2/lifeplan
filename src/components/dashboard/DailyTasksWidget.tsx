@@ -61,26 +61,6 @@ export const DailyTasksWidget = () => {
     }
   };
 
-  const handleAddTask = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!newTaskTitle.trim()) return;
-
-    const res = await fetch('/api/daily-tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTaskTitle }),
-    });
-
-    if (res.ok) {
-      const newTask = await res.json();
-      setTasks([...tasks, newTask]);
-      setNewTaskTitle("");
-      toast.success("Daily task added!");
-    } else {
-      toast.error("Failed to add task.");
-    }
-  };
-
   const handleArchiveTask = async (id: string) => {
     if (!window.confirm("Are you sure you want to archive this daily task?")) return;
     try {
