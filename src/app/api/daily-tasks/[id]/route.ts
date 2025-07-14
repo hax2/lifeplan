@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 type Context = {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 };
 
 // PATCH: Archive a daily task (soft delete)
@@ -12,7 +12,7 @@ export async function PATCH(req: Request, { params }: Context) {
     if (!session?.user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { id } = params;
+    const { id } = await params;
     const { isArchived } = await req.json(); // Expecting { isArchived: true }
 
     if (isArchived === undefined) {
