@@ -14,14 +14,6 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
   const pathname = usePathname();
   const { darkMode, toggleDarkMode } = useDarkMode();
 
-  const navLinkClasses = (href: string) => 
-    cn(
-      "block text-xs font-normal rounded px-2 py-1",
-      pathname === href 
-        ? "bg-skin-accent/10 text-skin-accent" 
-        : "text-skin-text/70 hover:bg-skin-border/20 hover:text-skin-text"
-    );
-
   return (
     <div className="flex flex-col h-full p-6 bg-skin-card border-r border-skin-border">
       {/* Close button for mobile */}
