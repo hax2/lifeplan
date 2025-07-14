@@ -1,3 +1,5 @@
+"use client";
+
 import useSWR from 'swr';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';

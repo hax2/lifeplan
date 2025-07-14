@@ -1,3 +1,5 @@
+"use client";
+
 import useSWR from 'swr';
 import { ProjectCard } from '@/components/dashboard/ProjectCard';
 import { Card } from '@/components/ui/Card';
