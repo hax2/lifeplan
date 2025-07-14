@@ -85,60 +85,14 @@ export const DailyTasksWidget = () => {
   
   return (
     <Card>
-      <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Daily Rhythm</h2>
-      <div className="space-y-3">
-        {isLoading ? (
-          <Skeleton />
-        ) : (
-          <>
-            <AnimatePresence>
-              {tasks.map(task => (
-                <motion.li
-                  layout="position"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  key={task.id}
-                  className={cn(
-                    'flex gap-3 rounded-lg p-3 transition-[background,color] duration-150',
-                    task.isCompleted
-                      ? 'bg-emerald-50 dark:bg-emerald-900/40'
-                      : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
-                  )}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={task.isCompleted}
-                    onChange={() => handleToggle(task)}
-                    className="h-5 w-5 accent-skin-accent"
-                  />
-                  <span className={cn("flex-1 break-words leading-snug", task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
-                    {task.title}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleArchiveTask(task.id);
-                    }}
-                  >
-                    <Archive size={16} />
-                  </Button>
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </>
-        )}
-      </div>
-      <div className="mt-4 flex justify-end">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Daily Rhythm</h2>
         <Dialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           trigger={
-            <Button variant="outline" size="sm" className="gap-2">
-              <Plus size={16} /> Add Daily Task
+            <Button variant="ghost" size="md" className="ml-2 p-2 rounded-full" aria-label="Add Daily Task">
+              <Plus size={20} />
             </Button>
           }
           title="Add Daily Task"
@@ -191,6 +145,52 @@ export const DailyTasksWidget = () => {
             </div>
           </form>
         </Dialog>
+      </div>
+      <div className="space-y-3">
+        {isLoading ? (
+          <Skeleton />
+        ) : (
+          <>
+            <AnimatePresence>
+              {tasks.map(task => (
+                <motion.li
+                  layout="position"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  key={task.id}
+                  className={cn(
+                    'flex gap-3 rounded-lg p-3 transition-[background,color] duration-150',
+                    task.isCompleted
+                      ? 'bg-emerald-50 dark:bg-emerald-900/40'
+                      : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
+                  )}
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={task.isCompleted}
+                    onChange={() => handleToggle(task)}
+                    className="h-5 w-5 accent-skin-accent"
+                  />
+                  <span className={cn("flex-1 break-words leading-snug", task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
+                    {task.title}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleArchiveTask(task.id);
+                    }}
+                  >
+                    <Archive size={16} />
+                  </Button>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </>
+        )}
       </div>
       <div className="mt-6">
         <p className='text-sm text-skin-text/60 mb-2 text-center'>{completedCount} of {tasks.length} tasks completed</p>

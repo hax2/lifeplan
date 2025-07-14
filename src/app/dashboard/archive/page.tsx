@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { RotateCcw, Trash2 } from 'lucide-react';
 import { useProjectStore } from '@/lib/store';
+import { useWeeklyTasks } from '@/components/dashboard/WeeklyTasksWidget';
 
 import useSWR from 'swr';
 
@@ -24,6 +25,9 @@ export default function ArchivePage() {
     url => fetch(url).then(r => r.json()).then(data => Array.isArray(data) ? data : []),
     { refreshInterval: 0 }
   );
+
+  // Add SWR mutate for weekly tasks
+  const { mutate: mutateWeeklySidebar } = useWeeklyTasks();
 
   const handleRestore = async (id: string, type: 'project' | 'daily' | 'weekly') => {
     let url = '';
@@ -68,6 +72,9 @@ export default function ArchivePage() {
         if (type === 'project') {
           const restoredProject = await res.json();
           useProjectStore.getState().addProject(restoredProject);
+        }
+        if (type === 'weekly') {
+          mutateWeeklySidebar(); // Refresh sidebar weekly tasks
         }
       } else {
         throw new Error('Failed to restore');

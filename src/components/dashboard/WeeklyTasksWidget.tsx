@@ -12,6 +12,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog } from '../ui/Dialog';
+import useSWR from 'swr';
 
 const Skeleton = () => (
   <div className="space-y-2">
@@ -24,26 +25,28 @@ const Skeleton = () => (
   </div>
 );
 
+export function useWeeklyTasks() {
+  return useSWR<WeeklyTask[]>('/api/weekly-tasks?isArchived=false',
+    (url: string) => fetch(url).then(r => r.json()).then((data: unknown) => Array.isArray(data) ? data : []));
+}
+
 export const WeeklyTasksWidget = () => {
-  const [tasks, setTasks] = useState<WeeklyTask[]>([]);
+  const { data: tasks = [], isLoading, mutate } = useWeeklyTasks();
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(
-    new Set()
-  );
-  const [isLoading, setIsLoading] = useState(true);
+  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // -------- data fetching ---------------------------------------------------
-  const fetchTasks = async () => {
-    setIsLoading(true);
-    const res = await fetch('/api/weekly-tasks?isArchived=false');
-    if (res.ok) setTasks(await res.json());
-    setIsLoading(false);
-  };
+  // const fetchTasks = async () => {
+  //   setIsLoading(true);
+  //   const res = await fetch('/api/weekly-tasks?isArchived=false');
+  //   if (res.ok) setTasks(await res.json());
+  //   setIsLoading(false);
+  // };
 
   /* fetch once on mount */
   useEffect(() => {
-    fetchTasks();
+    // fetchTasks();
   }, []);
 
   // -------- handlers --------------------------------------------------------
@@ -59,13 +62,11 @@ export const WeeklyTasksWidget = () => {
 
     if (res.ok) {
       toast.success('Weekly task marked complete!');
-      setTasks(prev =>
-        prev.map(t =>
-          t.id === task.id
-            ? { ...t, lastCompletedAt: new Date().toISOString() }
-            : t
-        )
-      );
+      mutate(prev => (prev ?? []).map(t =>
+        t.id === task.id
+          ? { ...t, lastCompletedAt: new Date().toISOString() }
+          : t
+      ));
     } else {
       toast.error('Failed to mark task complete.');
     }
@@ -87,7 +88,7 @@ export const WeeklyTasksWidget = () => {
         body: JSON.stringify({ id }),
       });
       if (res.ok) {
-        setTasks(tasks.filter(task => task.id !== id));
+        mutate(tasks.filter(task => task.id !== id));
         toast.success("Weekly task archived!");
       } else {
         toast.error("Failed to archive task.");
@@ -101,10 +102,67 @@ export const WeeklyTasksWidget = () => {
   // -------- render ----------------------------------------------------------
   return (
     <Card>
-      <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">
-        Weekly Habits
-      </h2>
-
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Weekly Habits</h2>
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          trigger={
+            <Button variant="ghost" size="md" className="ml-2 p-2 rounded-full" aria-label="Add Weekly Task">
+              <Plus size={20} />
+            </Button>
+          }
+          title="Add Weekly Task"
+        >
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newTaskTitle.trim()) return;
+                const tempId = `temp-${Date.now()}`;
+                const optimisticTask = { id: tempId, title: newTaskTitle, lastCompletedAt: null } as WeeklyTask;
+                mutate([...tasks, optimisticTask], false);
+                setDialogOpen(false);
+                setNewTaskTitle('');
+                try {
+                  const res = await fetch('/api/weekly-tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: optimisticTask.title }),
+                  });
+                  if (res.ok) {
+                    const newTask = await res.json();
+                    mutate(prev => (prev ?? []).map(t => t.id === tempId ? newTask : t));
+                    toast.success('Weekly task added!');
+                  } else {
+                    mutate(prev => (prev ?? []).filter(t => t.id !== tempId));
+                    toast.error('Failed to add task.');
+                  }
+                } catch {
+                  mutate(prev => (prev ?? []).filter(t => t.id !== tempId));
+                  toast.error('Failed to add task.');
+                }
+              }}
+              className="flex flex-col gap-4"
+            >
+              <input
+                type="text"
+                value={newTaskTitle}
+                onChange={e => setNewTaskTitle(e.target.value)}
+                placeholder="Enter weekly habit..."
+                className="bg-transparent border-b-2 border-skin-border p-2 text-sm focus:border-skin-accent focus:outline-none text-skin-text"
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary">
+                  Add
+                </Button>
+              </div>
+            </form>
+        </Dialog>
+      </div>
       <div className="space-y-3">
         {isLoading ? (
           <Skeleton />
@@ -156,66 +214,6 @@ export const WeeklyTasksWidget = () => {
             </AnimatePresence>
           </>
         )}
-        <div className="mt-4 flex justify-end">
-          <Dialog
-            open={dialogOpen}
-            onOpenChange={setDialogOpen}
-            trigger={
-              <Button variant="outline" size="sm" className="gap-2">
-                <Plus size={16} /> Add Weekly Task
-              </Button>
-            }
-            title="Add Weekly Task"
-          >
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!newTaskTitle.trim()) return;
-                const tempId = `temp-${Date.now()}`;
-                const optimisticTask = { id: tempId, title: newTaskTitle, lastCompletedAt: null } as WeeklyTask;
-                setTasks(prev => [...prev, optimisticTask]);
-                setDialogOpen(false);
-                setNewTaskTitle('');
-                try {
-                  const res = await fetch('/api/weekly-tasks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: optimisticTask.title }),
-                  });
-                  if (res.ok) {
-                    const newTask = await res.json();
-                    setTasks(prev => prev.map(t => t.id === tempId ? newTask : t));
-                    toast.success('Weekly task added!');
-                  } else {
-                    setTasks(prev => prev.filter(t => t.id !== tempId));
-                    toast.error('Failed to add task.');
-                  }
-                } catch {
-                  setTasks(prev => prev.filter(t => t.id !== tempId));
-                  toast.error('Failed to add task.');
-                }
-              }}
-              className="flex flex-col gap-4"
-            >
-              <input
-                type="text"
-                value={newTaskTitle}
-                onChange={e => setNewTaskTitle(e.target.value)}
-                placeholder="Enter weekly habit..."
-                className="bg-transparent border-b-2 border-skin-border p-2 text-sm focus:border-skin-accent focus:outline-none text-skin-text"
-                autoFocus
-              />
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary">
-                  Add
-                </Button>
-              </div>
-            </form>
-          </Dialog>
-        </div>
       </div>
     </Card>
   );
