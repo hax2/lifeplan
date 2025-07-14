@@ -22,9 +22,9 @@ model User {
   sessions      Session[]
 
   // User's data
-  projects        Project[]
+  projects           Project[]
   dailyTaskTemplates DailyTaskTemplate[]
-  weeklyTasks WeeklyTask[]
+  weeklyTasks        WeeklyTask[]
 }
 
 // Models for NextAuth.js
@@ -72,7 +72,7 @@ model Project {
   title       String
   description String?
   isArchived  Boolean  @default(false) // For soft deletion
-  isDone Boolean @default(false)
+  isDone      Boolean  @default(false)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -88,18 +88,18 @@ model Subtask {
   updatedAt   DateTime @updatedAt
 
   projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade) // Cascading delete
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade) // Cascading delete
 }
 
 // The "template" for a daily task, created once by the user.
 model DailyTaskTemplate {
-  id        String   @id @default(cuid())
-  title     String
-  createdAt DateTime @default(now())
-  isArchived  Boolean  @default(false)
+  id         String   @id @default(cuid())
+  title      String
+  createdAt  DateTime @default(now())
+  isArchived Boolean  @default(false) // NEW FIELD FOR ARCHIVING
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // A template has many completions over time
   completions DailyTaskCompletion[]
@@ -108,9 +108,8 @@ model DailyTaskTemplate {
 // A record of a specific completion on a specific day.
 // This is the key to historical tracking.
 model DailyTaskCompletion {
-  id        String   @id @default(cuid())
-  date      DateTime @db.Date // Store only the date part
-
+  id         String   @id @default(cuid())
+  date       DateTime @db.Date // Store only the date part
   templateId String
   template   DailyTaskTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
@@ -118,22 +117,22 @@ model DailyTaskCompletion {
 }
 
 model WeeklyTask {
-  id        String   @id @default(cuid())
-  title     String
-  createdAt DateTime @default(now())
-  isArchived  Boolean  @default(false)
+  id         String   @id @default(cuid())
+  title      String
+  createdAt  DateTime @default(now())
+  isArchived Boolean  @default(false) // NEW FIELD FOR ARCHIVING
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   completions WeeklyTaskCompletion[]
 }
 
 model WeeklyTaskCompletion {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   weeklyTaskId String
   weeklyTask   WeeklyTask @relation(fields: [weeklyTaskId], references: [id], onDelete: Cascade)
-  completedAt  DateTime  @db.Date
+  completedAt  DateTime   @default(now())
 
   @@unique([weeklyTaskId, completedAt]) // A weekly task can only be completed once at a specific time
 }

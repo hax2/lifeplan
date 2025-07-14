@@ -169,11 +169,11 @@ const handleSubtaskGeneration = async () => {
     }
 };
 
-if (isLoading) return <motion.div><ProjectDetailSkeleton /></motion.div>;
+if (isLoading) return <motion.div layout="position"><ProjectDetailSkeleton /></motion.div>;
 if (!project) return null;
 
 return (
-    <motion.div layoutId={id as string}>
+    <motion.div layout="position" layoutId={id as string}>
         <Card className="w-full max-w-4xl mx-auto shadow-2xl bg-skin-card border-skin-border">
             <div className="p-6 border-b border-skin-border">
                 <Link href="/dashboard" className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4 text-skin-text hover:text-skin-accent/80">
@@ -189,7 +189,7 @@ return (
                     ) : (
                         <div className="flex-grow">
                             <h1 className="text-3xl font-bold text-skin-text">{project.title}</h1>
-                            <p className="text-slate-500 mt-1 text-skin-text dark:text-slate-400">{project.description || 'No description provided.'}</p>
+                            <p className="text-sm text-slate-500 mt-1 text-skin-text dark:text-slate-400">{project.description || 'No description provided.'}</p>
                         </div>
                     )}
                     <div className="flex-shrink-0 flex items-center gap-1 bg-skin-card/50 backdrop-blur-sm rounded-full p-1 border border-skin-border">
@@ -212,18 +212,18 @@ return (
                 </div>
             </div>
             <div className="p-6">
-                <h3 className="font-bold mb-4 text-skin-text">Checklist</h3>
+                <h3 className="text-xl font-bold mb-4 text-skin-text">Checklist</h3>
                 <div className="space-y-3 mb-6">
                     <AnimatePresence>
                     {project.subtasks.map(subtask => (
                         <motion.button
-                            layout
+                            layout="position"
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
                             key={subtask.id}
                             onClick={() => handleToggleSubtask(subtask)}
-                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', subtask.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700')}
+                            className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left transition-[background,color] duration-150', subtask.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700')}
                             transition={{ duration: 0.2, ease: "easeInOut" }}
                         >
                             {subtask.isCompleted ? <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" /> : <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 text-skin-text/50" />}

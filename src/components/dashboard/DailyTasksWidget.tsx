@@ -1,17 +1,18 @@
 'use client';
 import { useEffect, useState, FormEvent } from "react";
-import { CheckCircle2, Circle, Plus, Archive } from "lucide-react";
+import { Plus, Archive } from "lucide-react";
 import toast from "react-hot-toast";
 import { DailyTask } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ProgressBar } from "../ui/ProgressBar";
 import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Skeleton = () => (
   <div className="space-y-2">
     {Array.from({ length: 4 }).map((_, i) => (
-      <div key={i} className="h-10 bg-slate-200 rounded-lg animate-pulse dark:bg-zinc-700" />
+      <div key={i} className="h-10 bg-skin-border/50 rounded-lg animate-pulse" />
     ))}
   </div>
 );
@@ -110,33 +111,40 @@ export const DailyTasksWidget = () => {
           <>
             <AnimatePresence>
               {tasks.map(task => (
-                <motion.button
-                  layout
+                <motion.li
+                  layout="position"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   key={task.id}
-                  onClick={() => handleToggle(task)}
-                  // FIX: Added 'relative' to contain the absolute positioned strikethrough
-                  className={cn('w-full relative flex items-center gap-3 p-3 rounded-lg text-left', task.isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/50' : 'bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600')}
+                  className={cn(
+                    'flex gap-3 rounded-lg p-3 transition-[background,color] duration-150',
+                    task.isCompleted
+                      ? 'bg-emerald-50 dark:bg-emerald-900/40'
+                      : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
+                  )}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
                 >
-                  {task.isCompleted ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0 dark:text-emerald-400" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 dark:text-slate-500" />
-                  )}
-                  <span className={cn("flex-grow", task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
+                  <input
+                    type="checkbox"
+                    checked={task.isCompleted}
+                    onChange={() => handleToggle(task)}
+                    className="h-5 w-5 accent-skin-accent"
+                  />
+                  <span className={cn("flex-1 break-words leading-snug", task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
                     {task.title}
                   </span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleArchiveTask(task.id); }}
-                    className="flex-shrink-0 text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1"
-                    title="Archive task"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleArchiveTask(task.id);
+                    }}
                   >
                     <Archive size={16} />
-                  </button>
-                </motion.button>
+                  </Button>
+                </motion.li>
               ))}
             </AnimatePresence>
           </>

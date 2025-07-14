@@ -1,8 +1,22 @@
-import { type FC, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-export const Card: FC<{ children: ReactNode; className?: string }> = ({ children, className }) => (
-  <div className={cn('bg-white rounded-xl shadow-sm border border-slate-200/80 p-6 dark:bg-zinc-900 dark:border-zinc-800', className)}>
+export const Card = ({
+  children,
+  className,
+  as: Tag = 'div',
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: React.ElementType;
+}) => (
+  <Tag
+    className={cn(
+      'rounded-2xl border bg-skin-card shadow-sm',
+      'border-skin-border text-skin-text',
+      'p-6 sm:p-8',
+      className
+    )}
+  >
     {children}
-  </div>
+  </Tag>
 );

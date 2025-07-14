@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { DailyTasksWidget } from "./DailyTasksWidget";
 import { WeeklyTasksWidget } from "./WeeklyTasksWidget";
-import { LogOut, Sun, Moon } from 'lucide-react';
+import { LogOut, Sun, Moon, X } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useDarkMode } from '@/components/ui/DarkModeProvider';
+import { Button } from '@/components/ui/Button';
 
-export const Sidebar = () => {
+export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
   const pathname = usePathname();
   const { darkMode, toggleDarkMode } = useDarkMode();
 
@@ -22,7 +23,20 @@ export const Sidebar = () => {
     );
 
   return (
-    <div className="flex flex-col h-full p-6 bg-white border-r border-slate-200 dark:bg-zinc-950 dark:border-zinc-800">
+    <div className="flex flex-col h-full p-6 bg-skin-card border-r border-skin-border">
+      {/* Close button for mobile */}
+      {onClose && (
+        <div className="flex justify-end mb-4 md:hidden">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="p-2"
+          >
+            <X size={20} />
+          </Button>
+        </div>
+      )}
       <h1 className="text-2xl font-bold text-slate-900 mb-2 dark:text-white">
         Samer&apos;s Dashboard
       </h1>

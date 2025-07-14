@@ -4,11 +4,12 @@
 'use client';
 
 import { useEffect, useState, FormEvent } from 'react';
-import { Check, Plus, Archive } from 'lucide-react';
+import { Plus, Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { WeeklyTask } from '@/lib/types';
 import { cn, formatDateRelativeToNow } from '@/lib/utils';
 import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Skeleton = () => (
@@ -16,7 +17,7 @@ const Skeleton = () => (
     {Array.from({ length: 4 }).map((_, i) => (
       <div
         key={i}
-        className="h-10 animate-pulse rounded-lg bg-slate-200 dark:bg-zinc-700"
+        className="h-10 animate-pulse rounded-lg bg-skin-border/50"
       />
     ))}
   </div>
@@ -131,63 +132,43 @@ export const WeeklyTasksWidget = () => {
               {tasks.map(task => {
                 const isCompleted = completedTaskIds.has(task.id);
                 return (
-                  <motion.div
+                  <motion.li
                     key={task.id}
-                    layout
+                    layout="position"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
-                    className="flex items-start gap-3 rounded-lg bg-slate-100 p-3 hover:bg-slate-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
+                    className={cn(
+                      'flex gap-3 rounded-lg p-3 transition-[background,color] duration-150',
+                      isCompleted
+                        ? 'bg-emerald-50 dark:bg-emerald-900/40'
+                        : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
+                    )}
                   >
+                    <input
+                      type="checkbox"
+                      checked={isCompleted}
+                      onChange={() => handleToggle(task)}
+                      className="h-5 w-5 accent-skin-accent"
+                    />
                     <div className="flex min-w-0 flex-grow flex-col">
-                      <span className="truncate">{task.title}</span>
+                      <span className="break-words leading-snug">{task.title}</span>
                       <span className="text-xs text-slate-500 dark:text-slate-400">
                         Last: {formatDateRelativeToNow(task.lastCompletedAt)}
                       </span>
                     </div>
-
-                    <button
-                      onClick={() => handleToggle(task)}
-                      disabled={isCompleted}
-                      className={cn(
-                        'ml-2 rounded-md px-4 py-1 text-sm text-white disabled:opacity-60',
-                        isCompleted
-                          ? 'bg-emerald-500'
-                          : 'bg-skin-accent hover:brightness-110'
-                      )}
-                    >
-                      <AnimatePresence mode="wait">
-                        {isCompleted ? (
-                          <motion.span
-                            key="done"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="flex items-center gap-1"
-                          >
-                            <Check size={16} /> Done
-                          </motion.span>
-                        ) : (
-                          <motion.span
-                            key="complete"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                          >
-                            Complete
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleArchiveTask(task.id); }}
-                      className="flex-shrink-0 text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1"
-                      title="Archive task"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleArchiveTask(task.id);
+                      }}
                     >
                       <Archive size={16} />
-                    </button>
-                  </motion.div>
+                    </Button>
+                  </motion.li>
                 );
               })}
             </AnimatePresence>

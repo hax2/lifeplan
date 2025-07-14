@@ -15,14 +15,14 @@ import Link from 'next/link';
 const ProjectCardSkeleton = () => (
 <div className="rounded-xl shadow-sm border p-6 bg-skin-card border-skin-border min-h-[280px]">
 <div className="animate-pulse flex flex-col h-full">
-<div className="h-5 bg-slate-200 dark:bg-zinc-700 rounded w-3/4 mb-2"></div>
-<div className="h-4 bg-slate-200 dark:bg-zinc-700 rounded w-1/2 mb-4"></div>
+<div className="h-5 bg-skin-border/50 rounded w-3/4 mb-2"></div>
+<div className="h-4 bg-skin-border/50 rounded w-1/2 mb-4"></div>
 <div className="space-y-2 flex-grow">
-<div className="h-4 bg-slate-200 dark:bg-zinc-700 rounded"></div>
-<div className="h-4 bg-slate-200 dark:bg-zinc-700 rounded w-5/6"></div>
+<div className="h-4 bg-skin-border/50 rounded"></div>
+<div className="h-4 bg-skin-border/50 rounded w-5/6"></div>
 </div>
 <div className="mt-4">
-<div className="h-2 bg-slate-200 dark:bg-zinc-700 rounded-full"></div>
+<div className="h-2 bg-skin-border/50 rounded-full"></div>
 </div>
 </div>
 </div>
@@ -48,9 +48,11 @@ className="flex items-center mx-auto gap-2 bg-skin-accent text-white font-semibo
 export default function ActivePage() {
 const { projects, setProjects, addProject, removeProject, updateProject } = useProjectStore((state) => state);
 const [isLoading, setIsLoading] = useState(true);
-const [newProjectDraft, setNewProjectDraft] = useState<Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'isDone' | 'subtasks'> & { title: string, description: string | null } | null>(null);
+const [draft, setDraft] = useState({ title: '', description: '' });
+const [showDraft, setShowDraft] = useState(false);
 const [aiLoadingProjectId, setAiLoadingProjectId] = useState<string | null>(null);
 const titleInputRef = useRef<HTMLInputElement>(null);
+const hasFocusedOnce = useRef(false);
 
 
 const fetchProjects = useCallback(async () => {
@@ -76,17 +78,24 @@ setIsLoading(false);
 }, [fetchProjects, projects.length]);
 
 useEffect(() => {
-if (newProjectDraft) {
+if (showDraft && !hasFocusedOnce.current) {
 titleInputRef.current?.focus();
+hasFocusedOnce.current = true;
 }
-}, [newProjectDraft]);
+}, [showDraft]);
+
+const handleChange = (field: 'title' | 'description') =>
+  (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setDraft((d) => ({ ...d, [field]: e.target.value }));
 
 const handleStartNewProject = () => {
-setNewProjectDraft({ title: '', description: '' });
+setDraft({ title: '', description: '' });
+setShowDraft(true);
+hasFocusedOnce.current = false;
 };
 
 const handleSaveNewProject = async () => {
-if (!newProjectDraft || !newProjectDraft.title.trim()) {
+if (!draft.title.trim()) {
 toast.error('Project title cannot be empty.');
 return;
 }
@@ -95,7 +104,7 @@ try {
   const res = await fetch('/api/projects', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newProjectDraft),
+    body: JSON.stringify(draft),
   });
 
   if (!res.ok) throw new Error('Failed to create project');
@@ -103,7 +112,8 @@ try {
   const newProject = await res.json();
   addProject({ ...newProject, subtasks: [] });
   toast.success('Project created!');
-  setNewProjectDraft(null);
+  setDraft({ title: '', description: '' });
+  setShowDraft(false);
 } catch {
   toast.error('Failed to create project.');
 }
@@ -149,7 +159,7 @@ setAiLoadingProjectId(null);
 };
 
 return (
-<motion.div>
+<motion.div layout="position">
 <div className="flex justify-between items-center mb-6">
 <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Active Projects</h2>
 <button
@@ -166,34 +176,34 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
         Array.from({ length: 3 }).map((_, i) => <ProjectCardSkeleton key={i} />)
     ) : (
       <AnimatePresence>
-        {newProjectDraft && (
+        {showDraft && (
           <motion.div
-            layout
+            layout="position"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-            className="rounded-xl shadow-xl border border-sky-300/80 bg-sky-50/50 dark:bg-sky-900/50 dark:border-sky-700/80"
+            className="rounded-xl shadow-lg border border-sky-300/80 bg-sky-50/50 dark:bg-sky-900/50 dark:border-sky-700/80"
             transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
           >
             <div className="p-6">
               <input
                 ref={titleInputRef}
                 type="text"
-                value={newProjectDraft.title}
-                onChange={(e) => setNewProjectDraft({ ...newProjectDraft, title: e.target.value })}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewProject(); if (e.key === 'Escape') setNewProjectDraft(null); }}
+                value={draft.title}
+                onChange={handleChange('title')}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNewProject(); if (e.key === 'Escape') { setDraft({ title: '', description: '' }); setShowDraft(false); } }}
                 className="text-lg font-bold text-skin-text w-full bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-skin-accent transition-colors"
                 placeholder="Start with an action verb..."
               />
               <textarea
-                value={newProjectDraft.description ?? ''}
-                onChange={(e) => setNewProjectDraft({ ...newProjectDraft, description: e.target.value })}
+                value={draft.description}
+                onChange={handleChange('description')}
                 rows={2}
                 className="w-full text-slate-500 text-sm bg-transparent border-b-2 border-slate-300 focus:outline-none focus:border-skin-accent resize-none mt-2 transition-colors dark:text-slate-400"
-                placeholder="Add a description (optional)..."
+                placeholder="Optional description..."
               ></textarea>
               <div className="mt-4 flex justify-end space-x-2">
-                <button onClick={() => setNewProjectDraft(null)} className="px-3 py-1 border rounded-md shadow-sm text-sm font-medium bg-skin-card text-skin-text border-skin-border hover:bg-slate-50 dark:hover:bg-zinc-800">Cancel</button>
+                <button onClick={() => { setDraft({ title: '', description: '' }); setShowDraft(false); }} className="px-3 py-1 border rounded-md shadow-sm text-sm font-medium bg-skin-card text-skin-text border-skin-border hover:bg-slate-50 dark:hover:bg-zinc-800">Cancel</button>
                 <button onClick={handleSaveNewProject} className="px-3 py-1 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-skin-accent hover:brightness-110">Create</button>
               </div>
             </div>
@@ -209,11 +219,12 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
           return (
             <Link key={p.id} href={`/dashboard/project/${p.id}`} className="block">
               <motion.div
+                layout="position"
                 layoutId={p.id}
                 whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className={cn(
-                  'cursor-pointer rounded-xl shadow-md border bg-skin-card border-skin-border flex flex-col h-full min-h-[280px]',
+                  'cursor-pointer rounded-xl shadow-sm border bg-skin-card border-skin-border flex flex-col h-full min-h-[280px] hover:shadow-lg transition-[box-shadow] duration-150',
                   isCompleted && 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/50 dark:border-emerald-700'
                 )}
               >
@@ -268,7 +279,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
             </Link>
           );
         })}
-         {projects.length === 0 && !newProjectDraft && <EmptyState onClickNew={handleStartNewProject} />}
+         {projects.length === 0 && !showDraft && <EmptyState onClickNew={handleStartNewProject} />}
       </AnimatePresence>
     )}
   </div>

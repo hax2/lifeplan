@@ -12,6 +12,7 @@ export const ProgressBar: FC<{ value: number; max: number }> = ({ value, max }) 
      aria-valuemax={max}
      className="w-full bg-slate-200 rounded-full h-2 overflow-hidden dark:bg-zinc-700">
       <motion.div
+        layout="position"
         className="bg-sky-500 h-2 rounded-full dark:bg-sky-400"
         initial={{ width: 0 }}
         animate={{ width: reduce ? '0%' : `${percentage}%` }}

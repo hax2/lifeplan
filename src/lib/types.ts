@@ -3,7 +3,6 @@ export type Subtask = {
   text: string;
   isCompleted: boolean;
   createdAt: string;
-  updatedAt: string;
 };
 
 export type Project = {
@@ -11,6 +10,7 @@ export type Project = {
   title: string;
   description: string | null;
   isArchived: boolean;
+  isDone: boolean;
   createdAt: string;
   updatedAt: string;
   subtasks: Subtask[];
@@ -20,16 +20,16 @@ export type DailyTask = {
     id: string; // Template ID
     title:string;
     createdAt: string;
+    isArchived: boolean; // ADDED
     isCompleted: boolean; // Dynamic status for today
-    isArchived: boolean;
 }
 
 export type WeeklyTask = {
   id: string;
   title: string;
   createdAt: string;
+  isArchived: boolean; // ADDED
   lastCompletedAt: string | null;
-  isArchived: boolean;
 };
 
 export type WeeklyTaskCompletion = {
