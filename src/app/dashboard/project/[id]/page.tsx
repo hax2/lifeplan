@@ -304,9 +304,6 @@ return (
                         </AnimatePresence>
                       </SortableContext>
                     </DndContext>
-                    {(project.subtasks || []).length === 0 && (
-                        <p className="text-skin-text/60 text-center py-4">No subtasks for this project yet.</p>
-                    )}
                 </div>
                 <form onSubmit={handleAddSubtask} className="flex items-center gap-3">
                     <input
