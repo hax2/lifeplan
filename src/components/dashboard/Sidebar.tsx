@@ -48,41 +48,39 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
         }).format(new Date())}
       </p>
 
-      {/* ⚠️ key line: min-h-0 lets the inner flex item shrink,
-          overflow-y-auto gives it its own scrollbar */}
-      <div className="flex-grow min-h-0 pr-1 space-y-3">
-        <DailyTasksWidget />
-        <hr className="border-skin-border/70" />
-        <WeeklyTasksWidget />
+      <div className="flex flex-col flex-grow min-h-0">
+        <div className="flex-grow min-h-0 pr-1 space-y-3">
+          <DailyTasksWidget />
+          <hr className="border-skin-border/70" />
+          <WeeklyTasksWidget />
+        </div>
+        <div className="mt-4 flex flex-col gap-1">
+          <Link href="/dashboard" className="block text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent">
+            Active
+          </Link>
+          <Link href="/dashboard/done" className="block text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent">
+            Done
+          </Link>
+          <Link href="/dashboard/archive" className="block text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent">
+            Archived
+          </Link>
+          <hr className="my-2 border-skin-border/70" />
+          <button
+            onClick={toggleDarkMode}
+            className="flex items-center gap-2 text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent"
+          >
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="flex items-center gap-2 text-xs font-normal rounded px-2 py-1 w-full text-left transition-colors hover:bg-skin-border/20 focus:outline-none focus:ring-2 focus:ring-skin-accent"
+          >
+            <LogOut size={16} />
+            Sign Out
+          </button>
+        </div>
       </div>
-
-      <nav className="mb-8 space-y-1">
-        <Link href="/dashboard" className={navLinkClasses("/dashboard")}>
-          Active
-        </Link>
-        <Link href="/dashboard/done" className={navLinkClasses("/dashboard/done")}>
-          Done
-        </Link>
-        <Link href="/dashboard/archive" className={navLinkClasses("/dashboard/archive")}>
-          Archived
-        </Link>
-      </nav>
-
-      <button
-        onClick={toggleDarkMode}
-        className="flex items-center gap-2 text-sm text-skin-text/70 hover:text-skin-text"
-      >
-        {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-        {darkMode ? 'Light Mode' : 'Dark Mode'}
-      </button>
-
-      <button
-        onClick={() => signOut({ callbackUrl: '/login' })}
-        className="mt-4 flex items-center gap-2 text-sm text-skin-text/70 hover:text-skin-text"
-      >
-        <LogOut size={16} />
-        Sign Out
-      </button>
     </div>
   );
 };

@@ -89,7 +89,7 @@ export const DailyTasksWidget = () => {
   return (
     <Card variant="flat" className="flex flex-col space-y-2 max-h-[38vh] p-3 sm:p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Daily Rhythm</h2>
+        <h2 className="text-base font-semibold text-slate-900 dark:text-white mb-2">Daily Tasks</h2>
         <Dialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
