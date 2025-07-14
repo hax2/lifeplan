@@ -258,7 +258,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                         </div>
                     ) : (
                         <div className="text-center text-sm text-skin-text/50 py-3">
-                            No subtasks yet.
+                            
                         </div>
                     )}
                     </div>

@@ -16,7 +16,7 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
 
   const navLinkClasses = (href: string) => 
     cn(
-      "block font-medium rounded-lg px-4 py-2",
+      "block text-xs font-normal rounded px-2 py-1",
       pathname === href 
         ? "bg-skin-accent/10 text-skin-accent" 
         : "text-skin-text/70 hover:bg-skin-border/20 hover:text-skin-text"
@@ -56,7 +56,7 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
         <WeeklyTasksWidget />
       </div>
 
-      <nav className="mb-8 space-y-2">
+      <nav className="mb-8 space-y-1">
         <Link href="/dashboard" className={navLinkClasses("/dashboard")}>
           Active
         </Link>
