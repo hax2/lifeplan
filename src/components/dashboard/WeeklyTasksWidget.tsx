@@ -101,7 +101,7 @@ export const WeeklyTasksWidget = () => {
 
   // -------- render ----------------------------------------------------------
   return (
-    <Card variant="flat" className="flex flex-col space-y-3 max-h-[45vh]">
+    <Card variant="flat" className="flex flex-col space-y-2 max-h-[38vh] p-3 sm:p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Weekly Habits</h2>
         <Dialog
@@ -163,7 +163,7 @@ export const WeeklyTasksWidget = () => {
             </form>
         </Dialog>
       </div>
-      <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
         {isLoading ? (
           <SkeletonList />
         ) : (
