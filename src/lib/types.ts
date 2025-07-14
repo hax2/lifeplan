@@ -3,6 +3,7 @@ export type Subtask = {
   text: string;
   isCompleted: boolean;
   createdAt: string;
+  updatedAt: string;
 };
 
 export type Project = {

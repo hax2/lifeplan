@@ -112,7 +112,7 @@ const handleAddSubtask = async (e: FormEvent) => {
         const finalUpdater = (p: Project | undefined) => {
             if (!p) return undefined;
             const finalSubtasks = p.subtasks.map(s => s.id === tempId ? createdSubtask : s);
-            updateProject({ id: p.id, subtasks: finalSubtasks });
+            updateProject({ ...p, subtasks: finalSubtasks });
             return { ...p, subtasks: finalSubtasks };
         };
         setProject(finalUpdater);
@@ -127,7 +127,7 @@ const handleToggleSubtask = async (subtask: Subtask) => {
     
     const updatedSubtasks = project.subtasks.map(s => s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s);
     setProject(p => p ? { ...p, subtasks: updatedSubtasks } : undefined);
-    updateProject({ id: project.id, subtasks: updatedSubtasks });
+    updateProject({ ...project, subtasks: updatedSubtasks });
 
     const res = await fetch(`/api/subtasks/${subtask.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isCompleted: !subtask.isCompleted }) });
     

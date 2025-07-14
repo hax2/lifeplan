@@ -46,7 +46,7 @@ className="flex items-center mx-auto gap-2 bg-skin-accent text-white font-semibo
 );
 
 export default function ActivePage() {
-const { projects, setProjects, addProject, removeProject, updateProject } = useProjectStore();
+const { projects, setProjects, addProject, removeProject, updateProject } = useProjectStore((state) => state);
 const [isLoading, setIsLoading] = useState(true);
 const [newProjectDraft, setNewProjectDraft] = useState<Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'isDone' | 'subtasks'> & { title: string, description: string | null } | null>(null);
 const [aiLoadingProjectId, setAiLoadingProjectId] = useState<string | null>(null);
