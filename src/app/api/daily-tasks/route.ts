@@ -21,6 +21,8 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const dateParam = searchParams.get('date');          // e.g. '2025-07-14'
+  const isArchivedParam = searchParams.get('isArchived'); // e.g. 'true' or 'false'
+
   if (!dateParam) {
     return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
   }
@@ -30,9 +32,15 @@ export async function GET(req: Request) {
   const targetDate = startOfDay(zoned);
   const nextDate   = addDays(targetDate, 1);
 
+  // Determine isArchived filter
+  const isArchived = isArchivedParam === 'true' ? true : isArchivedParam === 'false' ? false : undefined;
+
   // 2. Fetch templates (once) and completions for that day
   const templates = await prisma.dailyTaskTemplate.findMany({
-    where: { userId: session.user.id },
+    where: {
+      userId: session.user.id,
+      ...(isArchived !== undefined && { isArchived: isArchived }),
+    },
     orderBy: { createdAt: 'asc' },
   });
 

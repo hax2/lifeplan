@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, FormEvent } from "react";
-import { CheckCircle2, Circle, Plus } from "lucide-react";
+import { CheckCircle2, Circle, Plus, Archive } from "lucide-react";
 import toast from "react-hot-toast";
 import { DailyTask } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ export const DailyTasksWidget = () => {
   const fetchTasks = async () => {
     setIsLoading(true);
     const today = getTodayDateString();
-    const response = await fetch(`/api/daily-tasks?date=${today}`);
+    const response = await fetch(`/api/daily-tasks?date=${today}&isArchived=false`);
     if (response.ok) setTasks(await response.json());
     setIsLoading(false);
   };
@@ -78,6 +78,32 @@ export const DailyTasksWidget = () => {
     }
   };
 
+  const handleArchiveTask = async (id: string) => {
+    if (!window.confirm("Are you sure you want to archive this daily task?")) return;
+    try {
+      const res = await fetch('/api/daily-tasks/archive', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setTasks(tasks.filter(task => task.id !== id));
+        toast.success("Daily task archived!");
+      } else {
+        toast.error("Failed to archive task.");
+      }
+    } catch (error) {
+      console.error("Error archiving daily task:", error);
+      toast.error("An error occurred while archiving.");
+    }
+  };
+
+  const completedCount = tasks.filter(t => t.isCompleted).length;
+  
+  const completedCount = tasks.filter(t => t.isCompleted).length;
+  
+  const completedCount = tasks.filter(t => t.isCompleted).length;
+  
   const completedCount = tasks.filter(t => t.isCompleted).length;
   
   return (
@@ -106,9 +132,16 @@ export const DailyTasksWidget = () => {
                   ) : (
                     <Circle className="h-5 w-5 text-slate-400 flex-shrink-0 dark:text-slate-500" />
                   )}
-                  <span className={cn(task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
+                  <span className={cn("flex-grow", task.isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>
                     {task.title}
                   </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleArchiveTask(task.id); }}
+                    className="flex-shrink-0 text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1"
+                    title="Archive task"
+                  >
+                    <Archive size={16} />
+                  </button>
                 </motion.button>
               ))}
             </AnimatePresence>

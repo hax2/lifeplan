@@ -21,6 +21,7 @@ export type DailyTask = {
     title:string;
     createdAt: string;
     isCompleted: boolean; // Dynamic status for today
+    isArchived: boolean;
 }
 
 export type WeeklyTask = {
@@ -28,6 +29,7 @@ export type WeeklyTask = {
   title: string;
   createdAt: string;
   lastCompletedAt: string | null;
+  isArchived: boolean;
 };
 
 export type WeeklyTaskCompletion = {

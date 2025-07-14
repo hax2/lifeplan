@@ -4,7 +4,7 @@
 'use client';
 
 import { useEffect, useState, FormEvent } from 'react';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus, Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { WeeklyTask } from '@/lib/types';
 import { cn, formatDateRelativeToNow } from '@/lib/utils';
@@ -33,7 +33,7 @@ export const WeeklyTasksWidget = () => {
   // -------- data fetching ---------------------------------------------------
   const fetchTasks = async () => {
     setIsLoading(true);
-    const res = await fetch('/api/weekly-tasks');
+    const res = await fetch('/api/weekly-tasks?isArchived=false');
     if (res.ok) setTasks(await res.json());
     setIsLoading(false);
   };
@@ -92,6 +92,26 @@ export const WeeklyTasksWidget = () => {
       toast.success('Weekly task added!');
     } else {
       toast.error('Failed to add task.');
+    }
+  };
+
+  const handleArchiveTask = async (id: string) => {
+    if (!window.confirm("Are you sure you want to archive this weekly task?")) return;
+    try {
+      const res = await fetch('/api/weekly-tasks/archive', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setTasks(tasks.filter(task => task.id !== id));
+        toast.success("Weekly task archived!");
+      } else {
+        toast.error("Failed to archive task.");
+      }
+    } catch (error) {
+      console.error("Error archiving weekly task:", error);
+      toast.error("An error occurred while archiving.");
     }
   };
 
@@ -159,6 +179,13 @@ export const WeeklyTasksWidget = () => {
                           </motion.span>
                         )}
                       </AnimatePresence>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleArchiveTask(task.id); }}
+                      className="flex-shrink-0 text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1"
+                      title="Archive task"
+                    >
+                      <Archive size={16} />
                     </button>
                   </motion.div>
                 );
