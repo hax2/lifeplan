@@ -33,6 +33,5 @@
 
 /* Touch-friendly buttons & hit-areas */
 button svg { pointer-events: none; }          /* icon isn’t the click target */
-button       { @apply touch:hidden; }         /* disable double-tap zoom */
 /* For small icon-only buttons */
 .btn-icon    { @apply h-11 w-11 p-0 flex items-center justify-center; }
