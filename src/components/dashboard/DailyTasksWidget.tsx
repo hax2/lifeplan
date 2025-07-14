@@ -154,7 +154,7 @@ export const DailyTasksWidget = () => {
         ) : (
           <>
             <AnimatePresence>
-              {tasks.map(task => (
+              {tasks.slice().sort((a, b) => Number(a.isCompleted) - Number(b.isCompleted)).map(task => (
                 <motion.li
                   layout="position"
                   initial={{ opacity: 0, y: -10 }}

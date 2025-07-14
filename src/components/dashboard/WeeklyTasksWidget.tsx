@@ -37,6 +37,7 @@ export const WeeklyTasksWidget = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [flashId, setFlashId] = useState<string | null>(null);
 
   const completedCount = tasks.filter(t => t.lastCompletedAt).length;
 
@@ -185,58 +186,19 @@ export const WeeklyTasksWidget = () => {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className={cn(
                       'group flex items-center gap-3 rounded-lg p-3 transition-[background,color] duration-150 cursor-pointer',
-                      isCompleted
-                        ? 'bg-emerald-50 dark:bg-emerald-900/40'
-                        : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
+                      flashId === task.id ? 'bg-emerald-100 dark:bg-emerald-900/70' : isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/40' : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
                     )}
                     onClick={e => {
-                      if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input[type="checkbox"]')) return;
-                      // setCompletedTaskIds(prev => new Set(prev).add(task.id)); // This line was removed
-                      mutate(prev => (prev ?? []).map(t => t.id === task.id ? { ...t, lastCompletedAt: isCompleted ? null : new Date().toISOString() } : t), false);
-                      // fetch('/api/weekly-tasks/completion', { // This line was removed
-                      //   method: 'POST',
-                      //   headers: { 'Content-Type': 'application/json' },
-                      //   body: JSON.stringify({ taskId: task.id }),
-                      // }).then(res => { // This line was removed
-                      //   if (!res.ok) { // This line was removed
-                      //     mutate(); // This line was removed
-                      //   } // This line was removed
-                      //   setCompletedTaskIds(prev => { // This line was removed
-                      //     const next = new Set(prev); // This line was removed
-                      //     next.delete(task.id); // This line was removed
-                      //     return next; // This line was removed
-                      //   }); // This line was removed
-                      // }); // This line was removed
+                      if ((e.target as HTMLElement).closest('button')) return;
+                      setFlashId(task.id);
+                      setTimeout(() => setFlashId(null), 500);
+                      // Optionally, you can still call mutate or API here if needed
                     }}
                     onDoubleClick={() => {
                       setRenamingId(task.id);
                       setRenameValue(task.title);
                     }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={isCompleted}
-                      onChange={() => {
-                        // setCompletedTaskIds(prev => new Set(prev).add(task.id)); // This line was removed
-                        mutate(prev => (prev ?? []).map(t => t.id === task.id ? { ...t, lastCompletedAt: isCompleted ? null : new Date().toISOString() } : t), false);
-                        // fetch('/api/weekly-tasks/completion', { // This line was removed
-                        //   method: 'POST',
-                        //   headers: { 'Content-Type': 'application/json' },
-                        //   body: JSON.stringify({ taskId: task.id }),
-                        // }).then(res => { // This line was removed
-                        //   if (!res.ok) { // This line was removed
-                        //     mutate(); // This line was removed
-                        //   } // This line was removed
-                        //   setCompletedTaskIds(prev => { // This line was removed
-                        //     const next = new Set(prev); // This line was removed
-                        //     next.delete(task.id); // This line was removed
-                        //     return next; // This line was removed
-                        //   }); // This line was removed
-                        // }); // This line was removed
-                      }}
-                      className="h-5 w-5 accent-skin-accent cursor-pointer"
-                      onClick={e => e.stopPropagation()}
-                    />
                     <div className="flex-1 min-w-0">
                       {renamingId === task.id ? (
                         <input
@@ -306,10 +268,6 @@ export const WeeklyTasksWidget = () => {
             </AnimatePresence>
           </>
         )}
-      </div>
-      <div className="mt-6">
-        <p className='text-sm text-skin-text/60 mb-2 text-center'>{completedCount} of {tasks.length} tasks completed</p>
-        <ProgressBar value={completedCount} max={tasks.length === 0 ? 1 : tasks.length} />
       </div>
     </Card>
   );
