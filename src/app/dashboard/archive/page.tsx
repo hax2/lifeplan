@@ -11,17 +11,17 @@ export default function ArchivePage() {
   const router = useRouter();
 
   const { data: archivedProjects = [], isLoading: isLoadingProjects, mutate: mutateProjects } = useSWR<Project[]>('/api/archive',
-    url => fetch(url).then(r => r.json()),
+    url => fetch(url).then(r => r.json()).then(data => Array.isArray(data) ? data : []),
     { refreshInterval: 0 }         // no polling
   );
 
   const { data: archivedDailyTasks = [], isLoading: isLoadingDailyTasks, mutate: mutateDailyTasks } = useSWR<DailyTask[]>('/api/daily-tasks?isArchived=true',
-    url => fetch(url).then(r => r.json()),
+    url => fetch(url).then(r => r.json()).then(data => Array.isArray(data) ? data : []),
     { refreshInterval: 0 }
   );
 
   const { data: archivedWeeklyTasks = [], isLoading: isLoadingWeeklyTasks, mutate: mutateWeeklyTasks } = useSWR<WeeklyTask[]>('/api/weekly-tasks?isArchived=true',
-    url => fetch(url).then(r => r.json()),
+    url => fetch(url).then(r => r.json()).then(data => Array.isArray(data) ? data : []),
     { refreshInterval: 0 }
   );
 
