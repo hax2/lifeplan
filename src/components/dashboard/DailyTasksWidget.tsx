@@ -147,18 +147,27 @@ export const DailyTasksWidget = () => {
             onSubmit={async (e) => {
               e.preventDefault();
               if (!newTaskTitle.trim()) return;
-              const res = await fetch('/api/daily-tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTaskTitle }),
-              });
-              if (res.ok) {
-                const newTask = await res.json();
-                setTasks([...tasks, newTask]);
-                setNewTaskTitle("");
-                setDialogOpen(false);
-                toast.success("Daily task added!");
-              } else {
+              const tempId = `temp-${Date.now()}`;
+              const optimisticTask = { id: tempId, title: newTaskTitle, isCompleted: false } as DailyTask;
+              setTasks(prev => [...prev, optimisticTask]);
+              setDialogOpen(false);
+              setNewTaskTitle("");
+              try {
+                const res = await fetch('/api/daily-tasks', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ title: optimisticTask.title }),
+                });
+                if (res.ok) {
+                  const newTask = await res.json();
+                  setTasks(prev => prev.map(t => t.id === tempId ? newTask : t));
+                  toast.success("Daily task added!");
+                } else {
+                  setTasks(prev => prev.filter(t => t.id !== tempId));
+                  toast.error("Failed to add task.");
+                }
+              } catch {
+                setTasks(prev => prev.filter(t => t.id !== tempId));
                 toast.error("Failed to add task.");
               }
             }}
