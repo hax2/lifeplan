@@ -149,7 +149,7 @@ export const DailyTasksWidget = () => {
           </form>
         </Dialog>
       </div>
-      <div className="space-y-3 max-h-[350px] md:max-h-[400px] overflow-y-auto pr-1">
+      <div className="space-y-3 max-h-[280px] md:max-h-[320px] overflow-y-auto pr-1">
         {isLoading ? (
           <SkeletonList />
         ) : (

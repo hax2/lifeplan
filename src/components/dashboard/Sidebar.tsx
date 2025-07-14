@@ -48,7 +48,9 @@ export const Sidebar = ({ onClose }: { onClose?: () => void }) => {
         }).format(new Date())}
       </p>
 
-      <div className="flex-grow space-y-8">
+      {/* ⚠️ key line: min-h-0 lets the inner flex item shrink,
+          overflow-y-auto gives it its own scrollbar */}
+      <div className="flex-grow min-h-0 overflow-y-auto pr-1 space-y-8">
         <DailyTasksWidget />
         <WeeklyTasksWidget />
       </div>
