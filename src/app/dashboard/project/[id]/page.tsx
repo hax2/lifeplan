@@ -101,7 +101,7 @@ const handleAddSubtask = async (e: FormEvent) => {
     const tempId = `temp-${Date.now()}`;
     const newOptimisticSubtask: Subtask = { id: tempId, text: newSubtaskText, isCompleted: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     
-    const updater = (p: Project | undefined) => p ? { ...p, subtasks: [...p.subtasks, newOptimisticSubtask] } : undefined;
+    const updater = (p: Project | undefined) => p ? { ...p, subtasks: [...(p.subtasks || []), newOptimisticSubtask] } : undefined;
     setProject(updater);
     setNewSubtaskText("");
 
@@ -111,21 +111,21 @@ const handleAddSubtask = async (e: FormEvent) => {
         const createdSubtask = await res.json();
         const finalUpdater = (p: Project | undefined) => {
             if (!p) return undefined;
-            const finalSubtasks = p.subtasks.map(s => s.id === tempId ? createdSubtask : s);
+            const finalSubtasks = (p.subtasks || []).map(s => s.id === tempId ? createdSubtask : s);
             updateProject({ ...p, subtasks: finalSubtasks });
             return { ...p, subtasks: finalSubtasks };
         };
         setProject(finalUpdater);
     } else {
         toast.error("Failed to add subtask.");
-        setProject(p => p ? { ...p, subtasks: p.subtasks.filter(s => s.id !== tempId) } : undefined);
+        setProject(p => p ? { ...p, subtasks: (p.subtasks || []).filter(s => s.id !== tempId) } : undefined);
     }
 };
 
 const handleToggleSubtask = async (subtask: Subtask) => {
     if (!project) return;
     
-    const updatedSubtasks = project.subtasks.map(s => s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s);
+    const updatedSubtasks = (project.subtasks || []).map(s => s.id === subtask.id ? { ...s, isCompleted: !s.isCompleted } : s);
     setProject(p => p ? { ...p, subtasks: updatedSubtasks } : undefined);
     updateProject({ ...project, subtasks: updatedSubtasks });
 
@@ -215,7 +215,7 @@ return (
                 <h3 className="text-xl font-bold mb-4 text-skin-text">Checklist</h3>
                 <div className="space-y-3 mb-6">
                     <AnimatePresence>
-                    {project.subtasks.map(subtask => (
+                    {(project.subtasks || []).map(subtask => (
                         <motion.button
                             layout="position"
                             initial={{ opacity: 0, y: -10 }}
@@ -231,7 +231,7 @@ return (
                         </motion.button>
                     ))}
                     </AnimatePresence>
-                    {project.subtasks.length === 0 && (
+                    {(project.subtasks || []).length === 0 && (
                         <p className="text-slate-500 text-center py-4 text-skin-text dark:text-slate-400">No subtasks for this project yet.</p>
                     )}
                 </div>

@@ -210,11 +210,12 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
           </motion.div>
         )}
         {projects.map((p) => {
-          const doneCount = p.subtasks.filter((s) => s.isCompleted).length;
-          const totalCount = p.subtasks.length;
+          const subtasks = p.subtasks || [];
+          const doneCount = subtasks.filter((s) => s.isCompleted).length;
+          const totalCount = subtasks.length;
           const isCompleted = totalCount > 0 && doneCount === totalCount;
-          const uncompletedSubtasks = p.subtasks.filter(s => !s.isCompleted).slice(0, 3);
-          const remainingUncompletedCount = p.subtasks.filter(s => !s.isCompleted).length - uncompletedSubtasks.length;
+          const uncompletedSubtasks = subtasks.filter(s => !s.isCompleted).slice(0, 3);
+          const remainingUncompletedCount = subtasks.filter(s => !s.isCompleted).length - uncompletedSubtasks.length;
           
           return (
             <Link key={p.id} href={`/dashboard/project/${p.id}`} className="block">
@@ -266,7 +267,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                     </div>
                 </div>
                   
-                {p.subtasks.length > 0 && (
+                {subtasks.length > 0 && (
                   <div className="mt-auto p-6 pt-4 border-t border-skin-border/80">
                     <div className="flex justify-between items-center text-sm text-slate-500 mb-2 dark:text-slate-400">
                       <span>Progress</span>
