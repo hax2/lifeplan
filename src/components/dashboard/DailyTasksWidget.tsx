@@ -8,6 +8,7 @@ import { ProgressBar } from "../ui/ProgressBar";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { motion, AnimatePresence } from "framer-motion";
+import { Dialog } from '../ui/Dialog';
 
 const Skeleton = () => (
   <div className="space-y-2">
@@ -23,6 +24,7 @@ export const DailyTasksWidget = () => {
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchTasks = async () => {
     setIsLoading(true);
@@ -150,14 +152,57 @@ export const DailyTasksWidget = () => {
           </>
         )}
       </div>
-      <form onSubmit={handleAddTask} className="flex items-center gap-2 mt-4">
-        <input
-          type="text" value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)}
-          placeholder="Add a daily habit..."
-          className="flex-grow bg-transparent text-sm p-1 border-b-2 border-skin-border focus:outline-none focus:border-skin-accent transition-colors text-skin-text"
-        />
-        <button type="submit" className="text-skin-accent hover:text-skin-accent/80" title="Add habit"><Plus size={20} /></button>
-      </form>
+      <div className="mt-4 flex justify-end">
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          trigger={
+            <Button variant="outline" size="sm" className="gap-2">
+              <Plus size={16} /> Add Daily Task
+            </Button>
+          }
+          title="Add Daily Task"
+        >
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!newTaskTitle.trim()) return;
+              const res = await fetch('/api/daily-tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTaskTitle }),
+              });
+              if (res.ok) {
+                const newTask = await res.json();
+                setTasks([...tasks, newTask]);
+                setNewTaskTitle("");
+                setDialogOpen(false);
+                toast.success("Daily task added!");
+              } else {
+                toast.error("Failed to add task.");
+              }
+            }}
+            className="flex flex-col gap-4"
+          >
+            <input
+              type="text"
+              value={newTaskTitle}
+              onChange={e => setNewTaskTitle(e.target.value)}
+              placeholder="Enter daily habit..."
+              className="bg-transparent border-b-2 border-skin-border p-2 text-sm focus:border-skin-accent focus:outline-none text-skin-text"
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary">
+                Add
+              </Button>
+            </div>
+          </form>
+        </Dialog>
+      </div>
       <div className="mt-6">
         <p className='text-sm text-skin-text/60 mb-2 text-center'>{completedCount} of {tasks.length} tasks completed</p>
         <ProgressBar value={completedCount} max={tasks.length === 0 ? 1 : tasks.length} />

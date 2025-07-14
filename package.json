@@ -12,6 +12,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
     "@prisma/client": "^6.11.1",
+    "@radix-ui/react-dialog": "^1.1.14",
     "autoprefixer": "^10.4.21",
     "bcrypt": "^6.0.0",
     "clsx": "^2.1.1",

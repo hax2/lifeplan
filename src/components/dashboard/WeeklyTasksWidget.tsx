@@ -11,6 +11,7 @@ import { cn, formatDateRelativeToNow } from '@/lib/utils';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Dialog } from '../ui/Dialog';
 
 const Skeleton = () => (
   <div className="space-y-2">
@@ -30,6 +31,7 @@ export const WeeklyTasksWidget = () => {
     new Set()
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // -------- data fetching ---------------------------------------------------
   const fetchTasks = async () => {
@@ -174,26 +176,57 @@ export const WeeklyTasksWidget = () => {
             </AnimatePresence>
           </>
         )}
-
-        {/* add-task form */}
-        <form
-          onSubmit={handleAddTask}
-          className="mt-4 flex items-center gap-2"
-        >
-          <input
-            value={newTaskTitle}
-            onChange={e => setNewTaskTitle(e.target.value)}
-            placeholder="Add a weekly habit..."
-            className="flex-grow border-b-2 border-skin-border bg-transparent p-1 text-sm transition-colors focus:border-skin-accent focus:outline-none text-skin-text"
-          />
-          <button
-            type="submit"
-            title="Add habit"
-            className="text-skin-accent hover:text-skin-accent/80"
+        <div className="mt-4 flex justify-end">
+          <Dialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2">
+                <Plus size={16} /> Add Weekly Task
+              </Button>
+            }
+            title="Add Weekly Task"
           >
-            <Plus size={20} />
-          </button>
-        </form>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newTaskTitle.trim()) return;
+                const res = await fetch('/api/weekly-tasks', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ title: newTaskTitle }),
+                });
+                if (res.ok) {
+                  const newTask = await res.json();
+                  setTasks(prev => [...prev, newTask]);
+                  setNewTaskTitle('');
+                  setDialogOpen(false);
+                  toast.success('Weekly task added!');
+                } else {
+                  toast.error('Failed to add task.');
+                }
+              }}
+              className="flex flex-col gap-4"
+            >
+              <input
+                type="text"
+                value={newTaskTitle}
+                onChange={e => setNewTaskTitle(e.target.value)}
+                placeholder="Enter weekly habit..."
+                className="bg-transparent border-b-2 border-skin-border p-2 text-sm focus:border-skin-accent focus:outline-none text-skin-text"
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary">
+                  Add
+                </Button>
+              </div>
+            </form>
+          </Dialog>
+        </div>
       </div>
     </Card>
   );
