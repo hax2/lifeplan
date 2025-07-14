@@ -3,7 +3,7 @@
  * ---------------------------------------------------------------- */
 'use client';
 
-import { useEffect, useState, FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { WeeklyTask } from '@/lib/types';
