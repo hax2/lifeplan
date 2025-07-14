@@ -13,7 +13,6 @@ import { Button } from '../ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog } from '../ui/Dialog';
 import useSWR from 'swr';
-import { ProgressBar } from '../ui/ProgressBar';
 
 const Skeleton = () => (
   <div className="space-y-2">
@@ -38,8 +37,6 @@ export const WeeklyTasksWidget = () => {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [flashId, setFlashId] = useState<string | null>(null);
-
-  const completedCount = tasks.filter(t => t.lastCompletedAt).length;
 
   // -------- data fetching ---------------------------------------------------
   // const fetchTasks = async () => {
