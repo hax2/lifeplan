@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Plus } from 'lucide-react';
 import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from '@/components/dashboard/Motion';
 import { Project } from '@/lib/types';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());

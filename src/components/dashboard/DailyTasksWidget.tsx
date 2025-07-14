@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { Plus, Archive } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from '@/components/dashboard/Motion';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 

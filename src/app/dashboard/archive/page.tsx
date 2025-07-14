@@ -5,7 +5,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Archive, Trash2, RotateCcw } from 'lucide-react';
 import React, { useState } from 'react';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from '@/components/dashboard/Motion';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
