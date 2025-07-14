@@ -165,14 +165,13 @@ export const WeeklyTasksWidget = () => {
             </form>
         </Dialog>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-[350px] md:max-h-[400px] overflow-y-auto pr-1">
         {isLoading ? (
           <Skeleton />
         ) : (
           <>
             <AnimatePresence>
               {tasks.map(task => {
-                const isCompleted = Boolean(task.lastCompletedAt);
                 return (
                   <motion.li
                     key={task.id}
@@ -183,13 +182,18 @@ export const WeeklyTasksWidget = () => {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className={cn(
                       'group flex items-center gap-3 rounded-lg p-3 transition-[background,color] duration-150 cursor-pointer',
-                      flashId === task.id ? 'bg-emerald-100 dark:bg-emerald-900/70' : isCompleted ? 'bg-emerald-50 dark:bg-emerald-900/40' : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
+                      flashId === task.id ? 'bg-emerald-100 dark:bg-emerald-900/70' : 'hover:bg-slate-100 dark:hover:bg-zinc-700'
                     )}
-                    onClick={e => {
+                    onClick={async e => {
                       if ((e.target as HTMLElement).closest('button')) return;
                       setFlashId(task.id);
                       setTimeout(() => setFlashId(null), 500);
-                      // Optionally, you can still call mutate or API here if needed
+                      await fetch('/api/weekly-tasks/completion', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ taskId: task.id }),
+                      });
+                      mutate();
                     }}
                     onDoubleClick={() => {
                       setRenamingId(task.id);
@@ -229,9 +233,9 @@ export const WeeklyTasksWidget = () => {
                         />
                       ) : (
                         <div className="flex flex-col min-w-0">
-                          <span className={cn("break-words leading-snug font-medium truncate", isCompleted ? "text-slate-500 line-through dark:text-slate-400" : "")}>{task.title}</span>
+                          <span className="break-words leading-snug font-medium truncate">{task.title}</span>
                           <span className="text-xs text-skin-text/60 truncate">
-                            {task.lastCompletedAt ? `Last: ${formatDateRelativeToNow(task.lastCompletedAt)}` : 'Not completed yet'}
+                            {task.lastCompletedAt ? `Last: ${formatDateRelativeToNow(task.lastCompletedAt)}` : 'Last: never'}
                           </span>
                         </div>
                       )}

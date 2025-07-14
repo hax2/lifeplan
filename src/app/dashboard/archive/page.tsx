@@ -165,11 +165,13 @@ export default function ArchivePage() {
             <p className="text-slate-500 mt-2 dark:text-slate-400">Projects you archive will appear here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 max-h-[350px] md:max-h-[500px] overflow-y-auto pr-1">
           {archivedProjects.map(p => (
             <div key={p.id} onClick={() => router.push(`/dashboard/project/${p.id}`)} className="relative bg-skin-card p-6 rounded-xl shadow-sm border border-skin-border group cursor-pointer">
               <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300">{p.title}</h3>
-              <p className="text-slate-500 text-sm mt-1 h-10 overflow-hidden dark:text-slate-400">{p.description || 'No description.'}</p>
+              {p.description && (
+                <p className="text-slate-500 text-sm mt-1 h-10 overflow-hidden dark:text-slate-400">{p.description}</p>
+              )}
               <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={(e) => { e.stopPropagation(); handleRestore(p.id, 'project'); }} title="Restore" className="p-2 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-500 hover:text-emerald-700 transition-colors dark:bg-slate-700 dark:hover:bg-emerald-900 dark:text-slate-400 dark:hover:text-emerald-300">
                       <RotateCcw size={16} />
@@ -191,7 +193,7 @@ export default function ArchivePage() {
             <p className="text-slate-500 mt-2 dark:text-slate-400">Daily tasks you archive will appear here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 max-h-[350px] md:max-h-[500px] overflow-y-auto pr-1">
           {archivedDailyTasks.map(t => (
             <div key={t.id} className="relative bg-skin-card p-6 rounded-xl shadow-sm border border-skin-border group">
               <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300">{t.title}</h3>
@@ -216,7 +218,7 @@ export default function ArchivePage() {
             <p className="text-slate-500 mt-2 dark:text-slate-400">Weekly tasks you archive will appear here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-h-[350px] md:max-h-[500px] overflow-y-auto pr-1">
           {archivedWeeklyTasks.map(t => (
             <div key={t.id} className="relative bg-skin-card p-6 rounded-xl shadow-sm border border-skin-border group">
               <h3 className="text-lg font-bold text-slate-600 dark:text-slate-300">{t.title}</h3>
