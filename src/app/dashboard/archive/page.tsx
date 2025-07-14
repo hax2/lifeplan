@@ -62,7 +62,7 @@ export default function ArchivePage() {
 
     try {
       const res = await fetch(url, {
-        method: 'PATCH',
+        method: type === 'project' ? 'POST' : 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
