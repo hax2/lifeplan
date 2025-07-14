@@ -258,7 +258,7 @@ return (
                     ) : (
                         <div className="flex-grow">
                             <h1 className="text-3xl font-bold text-skin-text">{project.title}</h1>
-                            <p className="text-skin-text/60 text-sm mt-1">{project.description || 'No description provided.'}</p>
+                            <p className="text-skin-text/60 text-sm mt-1">{project.description || ''}</p>
                         </div>
                     )}
                     <div className="flex-shrink-0 flex items-center gap-1 bg-skin-card/50 backdrop-blur-sm rounded-full p-1 border border-skin-border">

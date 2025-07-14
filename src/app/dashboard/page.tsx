@@ -236,7 +236,7 @@ className="flex items-center gap-2 bg-skin-accent text-white font-semibold px-4 
                         </div>
                     </div>
 
-                  <p className="text-skin-text/60 text-sm mb-4 h-10 overflow-hidden">{p.description || 'No description.'}</p>
+                  <p className="text-skin-text/60 text-sm mb-4 h-10 overflow-hidden">{p.description || ''}</p>
                   
                     <div className="space-y-3 mt-2 mb-4 flex-grow">
                     {uncompletedSubtasks.length > 0 ? (
