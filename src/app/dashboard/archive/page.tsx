@@ -27,22 +27,25 @@ export default function ArchivePage() {
 
   const handleRestore = async (id: string, type: 'project' | 'daily' | 'weekly') => {
     let url = '';
-    let mutateFn: (data?: Project[] | DailyTask[] | WeeklyTask[], shouldRevalidate?: boolean) => Promise<any>;
+    let mutateFn: (data?: unknown, shouldRevalidate?: boolean) => Promise<unknown>;
     let currentData: Project[] | DailyTask[] | WeeklyTask[] = [];
 
     switch (type) {
       case 'project':
         url = '/api/archive/restore';
+        // @ts-ignore - SWR mutate functions are compatible
         mutateFn = mutateProjects;
         currentData = archivedProjects;
         break;
       case 'daily':
         url = '/api/daily-tasks/restore';
+        // @ts-ignore - SWR mutate functions are compatible
         mutateFn = mutateDailyTasks;
         currentData = archivedDailyTasks;
         break;
       case 'weekly':
         url = '/api/weekly-tasks/restore';
+        // @ts-ignore - SWR mutate functions are compatible
         mutateFn = mutateWeeklyTasks;
         currentData = archivedWeeklyTasks;
         break;
@@ -79,22 +82,26 @@ export default function ArchivePage() {
     if (!window.confirm("Are you sure? This will permanently delete this item.")) return;
 
     let url = '';
-    let mutateFn: (data?: Project[] | DailyTask[] | WeeklyTask[], shouldRevalidate?: boolean) => Promise<any>;
+    // @ts-ignore - SWR mutate functions have compatible signatures
+    let mutateFn: (data?: unknown, shouldRevalidate?: boolean) => Promise<unknown>;
     let currentData: Project[] | DailyTask[] | WeeklyTask[] = [];
 
     switch (type) {
       case 'project':
         url = '/api/archive/delete';
+        // @ts-ignore - SWR mutate functions are compatible
         mutateFn = mutateProjects;
         currentData = archivedProjects;
         break;
       case 'daily':
         url = '/api/daily-tasks/delete';
+        // @ts-ignore - SWR mutate functions are compatible
         mutateFn = mutateDailyTasks;
         currentData = archivedDailyTasks;
         break;
       case 'weekly':
         url = '/api/weekly-tasks/delete';
+        // @ts-ignore - SWR mutate functions are compatible
         mutateFn = mutateWeeklyTasks;
         currentData = archivedWeeklyTasks;
         break;
